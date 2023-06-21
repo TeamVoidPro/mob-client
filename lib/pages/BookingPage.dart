@@ -273,8 +273,10 @@ class _BookingPage extends State<BookingPage> {
                                         width: 2,
                                       ),
                                     ),
-                                    child: Column(
-                                      children: [
+                                    child:
+                                    Column(
+                                      children:
+                                      [
                                         Text("1 hr - 2 hrs",
                                             textAlign: TextAlign.left,
                                             style: TextStyle(
@@ -289,7 +291,7 @@ class _BookingPage extends State<BookingPage> {
                                               fontWeight: FontWeight.bold,
                                               color: Colors.black,
                                               fontSize: 18,
-                                            )),
+                                            ))
                                       ],
                                     ),
                                   ),
@@ -297,7 +299,8 @@ class _BookingPage extends State<BookingPage> {
                                     Positioned(
                                       top: 0,
                                       right: 0,
-                                      child: Container(
+                                      child:
+                                      Container(
                                         padding: EdgeInsets.all(5),
                                         margin: EdgeInsets.only(right: 10),
                                         width: 30,
