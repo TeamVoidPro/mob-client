@@ -11,39 +11,62 @@ class _SignUpPage extends State<SignUpPage> {
 
   bool _value = false;
 
+  // Terms and Conditions Dialog
+  void _showDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Terms and Conditions"),
+          content: const Text("This is the terms and conditions"),
+          backgroundColor: Colors.white,
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("Close"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
+
+
   @override
   Widget build(BuildContext context) {
+    double screenHeight = MediaQuery.of(context).size.height;
+
     // TODO: implement build
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Color.fromARGB(255, 37, 54, 101),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // Clickable Icon
-            IconButton(
-              icon: Icon(
-                Icons.arrow_back_ios,
-                color: Colors.white,
-              ),
+        actions: [
+          TextButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/home');
+                Navigator.pushNamed(context, '/login');
               },
-            ),
-            TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/login');
-                },
-                child: Text(
-                  "Sign In",
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold),
-                )),
-          ],
+              child: Text(
+                "Sign In",
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold),
+              )),
+        ],
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            Navigator.pushNamed(context, '/welcome');
+          },
         ),
       ),
       body: Container(
@@ -85,7 +108,7 @@ class _SignUpPage extends State<SignUpPage> {
               Positioned(
                   bottom: 0,
                   left: 0,
-                  height: 600,
+                  height: screenHeight * 0.65,
                   child: Container(
                     decoration: const BoxDecoration(
                       color: Colors.white,
@@ -105,10 +128,10 @@ class _SignUpPage extends State<SignUpPage> {
                           child: TextField(
                             decoration: InputDecoration(
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(30),
+                                borderRadius: BorderRadius.circular(20),
                               ),
                               focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(30),
+                                borderRadius: BorderRadius.circular(20),
                                 borderSide: BorderSide(
                                   color: Color.fromARGB(255, 37, 54, 101),
                                 ),
@@ -118,7 +141,7 @@ class _SignUpPage extends State<SignUpPage> {
                               ),
                               labelText: 'Username',
                               filled: true,
-                              fillColor: Color.fromARGB(255, 217, 217, 217),
+                              fillColor: Color.fromARGB(255, 255, 255, 255),
                               prefixIcon: Icon(Icons.person),
                               prefixIconColor: Color.fromARGB(255, 37, 54, 101),
                             ),
@@ -131,17 +154,17 @@ class _SignUpPage extends State<SignUpPage> {
                           child: TextField(
                             decoration: InputDecoration(
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(30),
+                                borderRadius: BorderRadius.circular(20),
                               ),
                               focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(30),
+                                borderRadius: BorderRadius.circular(20),
                                 borderSide: BorderSide(
                                   color: Color.fromARGB(255, 37, 54, 101),
                                 ),
                               ),
                               labelText: 'Email',
                               filled: true,
-                              fillColor: Color.fromARGB(255, 217, 217, 217),
+                              fillColor: Color.fromARGB(255, 255, 255, 255),
                               prefixIcon: Icon(Icons.email),
                               prefixIconColor: Color.fromARGB(255, 37, 54, 101),
                             ),
@@ -155,10 +178,10 @@ class _SignUpPage extends State<SignUpPage> {
                             obscureText: true,
                             decoration: InputDecoration(
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(30),
+                                borderRadius: BorderRadius.circular(20),
                               ),
                               focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(30),
+                                borderRadius: BorderRadius.circular(20),
                                 borderSide: BorderSide(
                                   color: Color.fromARGB(255, 37, 54, 101),
                                 ),
@@ -168,7 +191,7 @@ class _SignUpPage extends State<SignUpPage> {
                               ),
                               labelText: 'Password',
                               filled: true,
-                              fillColor: Color.fromARGB(255, 217, 217, 217),
+                              fillColor: Color.fromARGB(255, 255, 255, 255),
                               prefixIcon: Icon(Icons.lock),
                               prefixIconColor: Color.fromARGB(255, 37, 54, 101),
                             ),
@@ -182,17 +205,17 @@ class _SignUpPage extends State<SignUpPage> {
                             obscureText: true,
                             decoration: InputDecoration(
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(30),
+                                borderRadius: BorderRadius.circular(20),
                               ),
                               focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(30),
+                                borderRadius: BorderRadius.circular(20),
                                 borderSide: BorderSide(
                                   color: Color.fromARGB(255, 37, 54, 101),
                                 ),
                               ),
                               labelText: 'Confirm Password',
                               filled: true,
-                              fillColor: Color.fromARGB(255, 217, 217, 217),
+                              fillColor: Color.fromARGB(255, 255, 255, 255),
                               prefixIcon: Icon(Icons.lock),
                               prefixIconColor: Color.fromARGB(255, 37, 54, 101),
                             ),
@@ -233,7 +256,11 @@ class _SignUpPage extends State<SignUpPage> {
                                       color: Color.fromARGB(255, 37, 54, 101),
                                     ),
                                   ),
-                                  TextButton(onPressed: (){}, child:
+                                  TextButton(
+                                    onPressed: (){
+                                      _showDialog();
+                                    },
+                                    child:
                                     Text(
                                       "Terms and Conditions",
                                       style: TextStyle(
@@ -266,7 +293,7 @@ class _SignUpPage extends State<SignUpPage> {
                             style: ElevatedButton.styleFrom(
                               primary: Color.fromARGB(255, 37, 54, 101),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
+                                borderRadius: BorderRadius.circular(20),
                               ),
                               padding: EdgeInsets.only(top: 16, bottom: 16),
                             ),

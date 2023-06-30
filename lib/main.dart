@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mob_client/providets/dataProvider.dart';
 import 'package:mob_client/Routes/routes.dart';
+import 'package:mob_client/theme/theme.dart';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -24,12 +25,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       routes: routes,
-      initialRoute: '/welcome',
+      initialRoute: '/reservation',
       title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 153, 125, 0)),
-        useMaterial3: true,
-      ),
+      theme: myAppTheme,
     );
   }
 }

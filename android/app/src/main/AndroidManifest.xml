@@ -1,5 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
+
         android:label="mob_client"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
@@ -19,6 +20,7 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+<!--            <meta-data android:name="com.google.android.geo.AIzaSyCvbYq82SFP1JVqiFXWTMKAfwpUWQUtaPs" android:value="AIzaSyCvbYq82SFP1JVqiFXWTMKAfwpUWQUtaPs"/>-->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

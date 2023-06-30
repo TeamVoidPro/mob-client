@@ -10,37 +10,35 @@ class LoginPage extends StatefulWidget {
 class _LoginPage extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
+    double screenHeight = MediaQuery.of(context).size.height;
+    const white = Color.fromARGB(255, 255, 255, 255);
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Color.fromARGB(255, 37, 54, 101),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // Clickable Icon
-            IconButton(
-              icon: Icon(
-                Icons.arrow_back_ios,
-                color: Colors.white,
-              ),
+        actions: [
+          TextButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/home');
+                Navigator.pushNamed(context, '/register');
               },
-            ),
-            TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/register');
-                },
-                child: Text(
-                  "Register",
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold),
-                )),
-          ],
+              child: Text(
+                "Sign Up",
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold),
+              )),
+        ],
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            Navigator.pushNamed(context, '/welcome');
+          },
         ),
       ),
       body: Container(
@@ -54,9 +52,11 @@ class _LoginPage extends State<LoginPage> {
               Container(
                   padding: EdgeInsets.only(top: 0, left: 20, right: 20),
                   width: MediaQuery.of(context).size.width,
+                  height: screenHeight * 0.25,
                   child: Column(
                     children: [
                       Container(
+                        height: screenHeight * 0.05,
                         width: MediaQuery.of(context).size.width,
                         child: Text(
                           "Sign In",
@@ -66,7 +66,7 @@ class _LoginPage extends State<LoginPage> {
                               fontWeight: FontWeight.bold),
                         ),
                       ),
-                      SizedBox(height: 24),
+                      SizedBox(height: 10),
                       Container(
                         width: MediaQuery.of(context).size.width,
                         child: Text(
@@ -82,7 +82,7 @@ class _LoginPage extends State<LoginPage> {
               Positioned(
                   bottom: 0,
                   left: 0,
-                  height: 600,
+                  height: screenHeight * 0.75,
                   child: Container(
                     decoration: const BoxDecoration(
                       color: Colors.white,
@@ -102,20 +102,28 @@ class _LoginPage extends State<LoginPage> {
                           child: TextField(
                             decoration: InputDecoration(
                               border: OutlineInputBorder(
+                                borderSide: const BorderSide(
+                                  width: 2.0,
+                                  color: Color.fromARGB(255, 0, 0, 0),
+                                ),
                                 borderRadius: BorderRadius.circular(30),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(30),
-                                borderSide: BorderSide(
+                                borderSide: const BorderSide(
+                                  width: 2.0,
                                   color: Color.fromARGB(255, 37, 54, 101),
                                 ),
                               ),
-                              floatingLabelStyle: TextStyle(
+                              floatingLabelStyle: const TextStyle(
                                 color: Color.fromARGB(255, 37, 54, 101),
                               ),
                               labelText: 'Email',
+                              hintStyle: TextStyle(
+                                color: Color.fromARGB(255, 37, 54, 101),
+                              ),
                               filled: true,
-                              fillColor: Color.fromARGB(255, 217, 217, 217),
+                              fillColor: Color.fromARGB(255, 255, 255, 255),
                               prefixIcon: Icon(Icons.email),
                               prefixIconColor: Color.fromARGB(255, 37, 54, 101),
                             ),
@@ -128,17 +136,25 @@ class _LoginPage extends State<LoginPage> {
                           child: TextField(
                             decoration: InputDecoration(
                               border: OutlineInputBorder(
+                                borderSide: const BorderSide(
+                                  width: 3.0,
+                                  color: Color.fromARGB(255, 0, 0, 0),
+                                ),
                                 borderRadius: BorderRadius.circular(30),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(30),
-                                borderSide: BorderSide(
+                                borderSide: const BorderSide(
+                                  width: 2.0,
                                   color: Color.fromARGB(255, 37, 54, 101),
                                 ),
                               ),
+                              hintStyle: TextStyle(
+                                color: Color.fromARGB(255, 37, 54, 101),
+                              ),
                               labelText: 'Password',
                               filled: true,
-                              fillColor: Color.fromARGB(255, 217, 217, 217),
+                              fillColor: Color.fromARGB(255, 255 , 255, 255),
                               prefixIcon: Icon(Icons.password),
                               prefixIconColor: Color.fromARGB(255, 37, 54, 101),
                             ),
@@ -219,6 +235,9 @@ class _LoginPage extends State<LoginPage> {
                         Container(
                           width: MediaQuery.of(context).size.width,
                           padding: EdgeInsets.only(left: 20, right: 20),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                          ),
                           child: ElevatedButton(
                             onPressed: () {},
                             child: Row(
@@ -240,7 +259,6 @@ class _LoginPage extends State<LoginPage> {
                               ],
                             ),
                             style: ElevatedButton.styleFrom(
-                              primary: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30),
                               ),

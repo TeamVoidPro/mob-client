@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+// import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 
 import '../components/HalfCircleClipperTopLeft.dart';
@@ -13,11 +14,17 @@ class HomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<HomePage> {
   bool _isCollapsed = false;
+  // static final CameraPosition _kGooglePlex = CameraPosition(
+  //   target: LatLng(37.42796133580664, -122.085749655962),
+  //   zoom: 14.4746,
+  // );
 
 
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
@@ -25,19 +32,17 @@ class _MyHomePageState extends State<HomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
-        body: Stack(
+        body:
+        Stack(
       children: [
         Container(
+          width: screenWidth,
+          height: screenHeight,
             margin: EdgeInsets.only(top: 10),
-            height: MediaQuery.of(context).size.height,
             child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  Image(
-                    image: AssetImage('assets/Images/mapImage2.png'),
-                    width: MediaQuery.of(context).size.width,
-                  ),
-                ],
+              child: Image.asset(
+                "assets/Images/mapImage.png",
+                fit: BoxFit.cover,
               ),
             )),
         Positioned(
@@ -90,7 +95,8 @@ class _MyHomePageState extends State<HomePage> {
                   ),
                 ],
               ),
-            )),
+            )
+        ),
         Positioned(
           bottom: 0,
           left: 0,

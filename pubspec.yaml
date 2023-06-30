@@ -37,7 +37,9 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   provider: ^6.0.1
-  url_launcher: ^6.0.12
+  url_launcher: ^6.1.11
+  flutter_phone_direct_caller: ^2.1.1
+  google_maps_flutter: ^2.3.1
 
 dev_dependencies:
   flutter_test:
@@ -66,11 +68,18 @@ flutter:
   assets:
      - assets/Images/
      - assets/Images/welcome.png
+     - assets/Images/user.jpeg
+     - assets/Images/ucsc.png
+     - assets/Images/visa.png
+     - assets/Images/qr.png
+     - assets/Images/cash.png
      - assets/Images/logo-white.png
      - assets/Images/mapImage.png
      - assets/Images/mapImage2.png
+     - assets/Images/thankYou.png
      - assets/Icons/Google.png
      - assets/Icons/Facebook.png
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

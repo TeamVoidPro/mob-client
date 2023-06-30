@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class AddVehiclePage extends StatefulWidget {
@@ -26,37 +27,34 @@ class _AddVehiclePage extends State<AddVehiclePage> {
 
   @override
   Widget build(BuildContext context) {
+    double screenHeight = MediaQuery.of(context).size.height;
     // TODO: implement build
     return Scaffold(
       // resizeToAvoidBottomInset: false,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Color.fromARGB(255, 37, 54, 101),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // Clickable Icon
-            IconButton(
-              icon: Icon(
-                Icons.arrow_back_ios,
-                color: Colors.white,
-              ),
+        actions: [
+          TextButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/home');
               },
-            ),
-            TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/home');
-                },
-                child: Text(
-                  "Skip Now",
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold),
-                )),
-          ],
+              child: Text(
+                "Skip Now",
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold),
+              )),
+        ],
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            Navigator.pushNamed(context, '/home');
+          },
         ),
       ),
       body: Container(
@@ -65,8 +63,7 @@ class _AddVehiclePage extends State<AddVehiclePage> {
           decoration: const BoxDecoration(
             color: Color.fromARGB(255, 37, 54, 101),
           ),
-          child:
-          Stack(
+          child: Stack(
             children: [
               Container(
                   padding: EdgeInsets.only(top: 0, left: 20, right: 20),
@@ -99,7 +96,7 @@ class _AddVehiclePage extends State<AddVehiclePage> {
               Positioned(
                   bottom: 0,
                   left: 0,
-                  height: 600,
+                  height: screenHeight * 0.7,
                   child: Container(
                     decoration: const BoxDecoration(
                       color: Colors.white,
@@ -118,21 +115,22 @@ class _AddVehiclePage extends State<AddVehiclePage> {
                             border: Border.all(
                               color: Color.fromARGB(255, 37, 54, 101),
                             ),
-                            borderRadius: BorderRadius.circular(30),
-                            color: Color.fromARGB(255, 217, 217, 217),
+                            borderRadius: BorderRadius.circular(20),
+                            color: Color.fromARGB(255, 255, 255, 255),
                           ),
                           margin: EdgeInsets.only(left: 20, right: 20),
                           width: MediaQuery.of(context).size.width,
-                          padding: EdgeInsets.only(left: 20, right: 20,top: 5,bottom: 5),
+                          padding: EdgeInsets.only(
+                              left: 20, right: 20, top: 5, bottom: 5),
                           child: DropdownButton<String>(
                             isExpanded: true,
+                            underline: SizedBox(),
                             borderRadius: BorderRadius.circular(30),
                             style: TextStyle(
                               fontSize: 18,
                               color: Color.fromARGB(255, 37, 54, 101),
                             ),
-
-                            icon: Icon(Icons.arrow_drop_down),
+                            icon: Icon(Icons.keyboard_arrow_down),
                             value: vehicleTypeValue,
                             onChanged: (newValue) {
                               setState(() {
@@ -142,10 +140,12 @@ class _AddVehiclePage extends State<AddVehiclePage> {
                             items: items.map((String value) {
                               return DropdownMenuItem<String>(
                                 value: value,
-                                child:Row(
+                                child: Row(
                                   children: [
                                     Icon(icons[value]),
-                                    SizedBox(width: 10,),
+                                    SizedBox(
+                                      width: 10,
+                                    ),
                                     Text(value),
                                   ],
                                 ),
@@ -160,10 +160,10 @@ class _AddVehiclePage extends State<AddVehiclePage> {
                           child: TextField(
                             decoration: InputDecoration(
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(30),
+                                borderRadius: BorderRadius.circular(20),
                               ),
                               focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(30),
+                                borderRadius: BorderRadius.circular(20),
                                 borderSide: BorderSide(
                                   color: Color.fromARGB(255, 37, 54, 101),
                                 ),
@@ -173,8 +173,8 @@ class _AddVehiclePage extends State<AddVehiclePage> {
                               ),
                               labelText: 'Vehicle no',
                               filled: true,
-                              fillColor: Color.fromARGB(255, 217, 217, 217),
-                              prefixIcon: Icon(Icons.numbers),
+                              fillColor: Color.fromARGB(255, 255, 255, 255),
+                              prefixIcon: Icon(CupertinoIcons.number_square),
                               prefixIconColor: Color.fromARGB(255, 37, 54, 101),
                             ),
                           ),
@@ -196,7 +196,7 @@ class _AddVehiclePage extends State<AddVehiclePage> {
                               ),
                               labelText: 'Vehicle Model',
                               filled: true,
-                              fillColor: Color.fromARGB(255, 217, 217, 217),
+                              fillColor: Color.fromARGB(255, 255, 255, 255),
                               prefixIcon: Icon(Icons.car_crash),
                               prefixIconColor: Color.fromARGB(255, 37, 54, 101),
                             ),
@@ -223,7 +223,7 @@ class _AddVehiclePage extends State<AddVehiclePage> {
                               ),
                               labelText: 'Vehicle Color',
                               filled: true,
-                              fillColor: Color.fromARGB(255, 217, 217, 217),
+                              fillColor: Color.fromARGB(255, 255, 255, 255),
                               prefixIcon: Icon(Icons.color_lens),
                               prefixIconColor: Color.fromARGB(255, 37, 54, 101),
                             ),
@@ -247,12 +247,12 @@ class _AddVehiclePage extends State<AddVehiclePage> {
                                   color: Color.fromARGB(255, 37, 54, 101),
                                 ),
                               ),
-                              floatingLabelStyle: TextStyle(
+                              labelText: 'Note (Optional)',
+                              labelStyle: TextStyle(
                                 color: Color.fromARGB(255, 37, 54, 101),
                               ),
-                              labelText: 'Note (Optional)',
                               filled: true,
-                              fillColor: Color.fromARGB(255, 217, 217, 217),
+                              fillColor: Color.fromARGB(255, 255, 255, 255),
                               prefixIcon: Icon(Icons.note),
                               prefixIconColor: Color.fromARGB(255, 37, 54, 101),
                             ),
@@ -284,8 +284,8 @@ class _AddVehiclePage extends State<AddVehiclePage> {
                         ),
                       ],
                     ),
-                  )),
-
+                  )
+              ),
             ],
           )),
     );
