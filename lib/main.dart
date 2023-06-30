@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       routes: routes,
-      initialRoute: '/reservation',
+      initialRoute: '/welcome',
       title: 'Flutter Demo',
       theme: myAppTheme,
     );
