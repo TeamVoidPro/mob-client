@@ -143,6 +143,8 @@ class _ChatPage extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
+    final arguments = ModalRoute.of(context)!.settings.arguments;
+    print("arguments: $arguments");
     String _msg = "";
     double _height = MediaQuery.of(context).size.height;
     return Scaffold(
@@ -150,7 +152,7 @@ class _ChatPage extends State<ChatPage> {
           backgroundColor: Colors.white,
           leading: IconButton(
             onPressed: () {
-              Navigator.pushNamed(context, '/book');
+              Navigator.pushNamed(context, '/chatList');
             },
             icon: Icon(Icons.keyboard_arrow_left),
           ),

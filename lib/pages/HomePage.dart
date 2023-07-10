@@ -1,9 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 // import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:http/http.dart' as http;
 
-import '../components/HalfCircleClipperTopLeft.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -32,6 +29,45 @@ class _MyHomePageState extends State<HomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
+        appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            toolbarHeight: 40,
+            leading: IconButton(
+              icon: Icon(
+                Icons.menu,
+                color: Colors.black,
+                size: 32,
+              ),
+              onPressed: () {},
+            ),title: Image(
+          image: AssetImage("assets/Images/welcome.png"),
+          width: 150,
+            ),
+            centerTitle: true,
+            actions: [
+              // Chat Icon wrapped inside a Container with #EDF9FC color background and border radius of 15 
+              Container(
+                margin: EdgeInsets.only(right: 10),
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Color.fromARGB(255, 237, 249, 252),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: IconButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/chatList');
+                  },
+                  icon: Icon(
+                    Icons.chat,
+                    color: Color.fromARGB(255, 0, 116, 217),
+                  ),
+                ),
+              ),
+            ],actionsIconTheme: IconThemeData(color: Color.fromARGB(255, 120, 119, 115)),
+
+        ),
+        
         body:
         Stack(
       children: [

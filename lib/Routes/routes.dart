@@ -8,27 +8,27 @@ import 'package:mob_client/pages/LoginPage.dart';
 import 'package:mob_client/pages/ReservationPage.dart';
 import 'package:mob_client/pages/SignUpPage.dart';
 import 'package:mob_client/pages/SuccessPage.dart';
-import 'package:mob_client/pages/Test.dart';
 import 'package:mob_client/pages/ThankYou.dart';
 import 'package:mob_client/pages/WelcomePage.dart';
 
 import '../pages/BookingPaymentPage.dart';
+import '../pages/ChatListPage.dart';
 import '../pages/HomePage.dart';
 
 
 
 final Map<String, WidgetBuilder> routes = {
-  '/login': (context) => LoginPage(),
-  '/welcome': (context) => WelcomePage(),
-  '/register': (context) => SignUpPage(),
-  '/add-vehicle': (context) => AddVehiclePage(),
-  '/home': (context) => HomePage(),
-  '/test' : (context) => Test(),
-  '/book' : (context) => BookingPage(),
-  '/book/payment' : (context) => BookingPaymentPage(),
-  '/success' : (context) => SuccessPage(),
-  '/error' : (context) => ErrorPage(errorString: 'Error'),
-  '/thankyou' : (context) => ThankYou(msgString: 'UCSC Car Park',),
-  '/chat' : (context) => ChatPage(),
-  '/reservation' : (context) => ReservationPage(),
+  '/login': (context) => const LoginPage(),
+  '/welcome': (context) => const WelcomePage(),
+  '/register': (context) => const SignUpPage(),
+  '/add-vehicle': (context) => const AddVehiclePage(),
+  '/home': (context) => const HomePage(),
+  '/book' : (context) => const BookingPage(),
+  '/book/payment' : (context) => const BookingPaymentPage(),
+  '/success' : (context) => const SuccessPage(),
+  '/error' : (context) => const ErrorPage(errorString: 'Error'),
+  '/thankyou' : (context) => const ThankYou(msgString: 'UCSC Car Park',),
+  '/chat' : (context) => const ChatPage(),
+  '/reservation' : (context) => const ReservationPage(),
+  '/chatList' : (context) => const ChatListPage(),
 };
