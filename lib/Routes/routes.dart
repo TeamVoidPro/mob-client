@@ -8,7 +8,7 @@ import 'package:mob_client/pages/LoginPage.dart';
 import 'package:mob_client/pages/ReservationPage.dart';
 import 'package:mob_client/pages/SignUpPage.dart';
 import 'package:mob_client/pages/SuccessPage.dart';
-import 'package:mob_client/pages/Test.dart';
+// import 'package:mob_client/pages/Test.dart';
 import 'package:mob_client/pages/ThankYou.dart';
 import 'package:mob_client/pages/WelcomePage.dart';
 
@@ -23,7 +23,7 @@ final Map<String, WidgetBuilder> routes = {
   '/register': (context) => SignUpPage(),
   '/add-vehicle': (context) => AddVehiclePage(),
   '/home': (context) => HomePage(),
-  '/test' : (context) => Test(),
+  // '/test' : (context) => Test(),
   '/book' : (context) => BookingPage(),
   '/book/payment' : (context) => BookingPaymentPage(),
   '/success' : (context) => SuccessPage(),

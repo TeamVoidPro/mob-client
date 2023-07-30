@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 // import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -32,6 +31,183 @@ class _MyHomePageState extends State<HomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
+      appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: Builder(
+            builder: (context) => IconButton(
+              icon: new Icon(Icons.menu,color: Color.fromARGB(255, 5, 30, 101),),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            ),
+          ),
+          title: Image.asset(
+            "assets/Images/welcome.png",
+            fit: BoxFit.contain,
+            height: 40,
+          ),
+          actions: [
+            IconButton(
+              icon: new Icon(Icons.notifications,color: Color.fromARGB(255, 5, 30, 101),),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            ),
+          ]),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 40,
+                    backgroundImage: AssetImage('assets/Images/user.jpeg'),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'Mr.Danodya Supun',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                    ),
+                  ),
+                  Text(
+                    'danodya@yahoo.com',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ButtonBar(
+              alignment: MainAxisAlignment.center,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/premium');
+                  },
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                        Color.fromARGB(255, 5, 30, 101)),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50),
+                        side: BorderSide(
+                            color: Color.fromARGB(255, 37, 54, 101)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "Upgrade to Premium",
+                    style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            ListTile(
+              leading: Icon(Icons.miscellaneous_services_sharp,color: Color.fromARGB(255, 5, 30, 101),),
+              title: Text('Services'),
+              subtitle: Text('View Services we provide',
+              style: TextStyle(
+                fontSize: 12,
+              ),),
+              onTap: () {
+                // Handle onTap action for item 1
+              },
+            ),
+            Divider(
+              height: 1,
+              thickness: 1,
+            ),
+            ListTile(
+              leading: Icon(Icons.book_online_sharp,color: Color.fromARGB(255, 5, 30, 101),),
+              title: Text('My Booking'),
+              subtitle: Text('View previous parkings',
+                style: TextStyle(
+                  fontSize: 12,
+                ),),
+              onTap: () {
+                // Handle onTap action for item 2
+              },
+            ),
+            Divider(
+              height: 1,
+              thickness: 1,
+            ),
+            ListTile(
+              leading: Icon(Icons.local_offer_sharp,color: Color.fromARGB(255, 5, 30, 101),),
+              title: Text('Promotions'),
+              subtitle: Text('View promotions',
+                style: TextStyle(
+                  fontSize: 12,
+                ),),
+              onTap: () {
+                // Handle onTap action for item 3
+              },
+            ),
+            Divider(
+              height: 1,
+              thickness: 1,
+            ),
+            ListTile(
+              leading: Icon(Icons.report_sharp,color: Color.fromARGB(255, 5, 30, 101),),
+              title: Text('Complaints'),
+              subtitle: Text('View complaints',
+                style: TextStyle(
+                  fontSize: 12,
+                ),),
+              onTap: () {
+                // Handle onTap action for item 3
+              },
+            ),
+            Divider(
+              height: 1,
+              thickness: 1,
+            ),
+            ListTile(
+              leading: Icon(Icons.wallet_giftcard_sharp,color: Color.fromARGB(255, 5, 30, 101),),
+              title: Text('Ease Wallet'),
+              subtitle: Text('View Ease Wallet',
+                style: TextStyle(
+                  fontSize: 12,
+                ),),
+              onTap: () {
+                // Handle onTap action for item 3
+              },
+            ),
+            Divider(
+              height: 1,
+              thickness: 1,
+            ),
+            ListTile(
+              leading: Icon(Icons.settings_sharp,color: Color.fromARGB(255, 5, 30, 101),),
+              title: Text('Settings'),
+              subtitle: Text('View Settings',
+                style: TextStyle(
+                  fontSize: 12,
+                ),),
+              onTap: () {
+                // Handle onTap action for item 3
+              },
+            ),
+            Divider(
+              height: 1,
+              thickness: 1,
+            ),
+            // Add more ListTiles for other items in the drawer
+          ],
+        ),
+      ),
+      // Add the rest of your content below
+
         body:
         Stack(
       children: [
