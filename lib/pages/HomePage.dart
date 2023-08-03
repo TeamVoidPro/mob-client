@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mob_client/pages/Services.dart';
+import 'package:mob_client/pages/Settings.dart';
 // import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 
@@ -121,6 +123,8 @@ class _MyHomePageState extends State<HomePage> {
               ),),
               onTap: () {
                 // Handle onTap action for item 1
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => Services()));
               },
             ),
             Divider(
@@ -195,6 +199,8 @@ class _MyHomePageState extends State<HomePage> {
                   fontSize: 12,
                 ),),
               onTap: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => Settings()));
                 // Handle onTap action for item 3
               },
             ),
