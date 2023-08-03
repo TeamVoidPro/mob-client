@@ -28,12 +28,13 @@ class Settings extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                margin: EdgeInsets.all(20),
                 height: 200,
-                width: 400,
-                decoration: BoxDecoration(
-                  color: Colors.indigo[900],
-                  borderRadius: BorderRadius.circular(20),
+                decoration: const BoxDecoration(
+                  color: Color.fromARGB(255, 37, 54, 101),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(50),
+                    bottomRight: Radius.circular(50),
+                  ),
                 ),
               child:
               Row(
@@ -42,12 +43,18 @@ class Settings extends StatelessWidget {
                   Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                     children:[
-                      CircleAvatar(
-                        radius: 40,
-                        backgroundImage: AssetImage('assets/Images/user.jpeg'),
-                      ),
+                      Container(
+                        width: 150,
+                        height: 150,
+                        child:
+                        CircleAvatar(
+                          radius: 40,
+                          backgroundImage: AssetImage('assets/Images/user.jpeg'),
+                        ),
+                      )
                     ]
                   ),
+                  SizedBox(width: 20,),
                   Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
