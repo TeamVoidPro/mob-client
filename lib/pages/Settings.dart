@@ -85,6 +85,19 @@ class Settings extends StatelessWidget {
                 ),
                 ]
               ),
+              ),
+              SizedBox(height: 20,),
+              Container(
+                child:
+                Text(
+                  'Payments',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+
+                ),
               )
             ]
     )
