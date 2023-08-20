@@ -440,7 +440,7 @@ class _BookingPaymentPage extends State<BookingPaymentPage> {
                       children: [
                         TextButton(
                           onPressed: () {
-                            Navigator.pushNamed(context, '/payment');
+                            Navigator.pushNamed(context, '/success');
                           },
                           style: ButtonStyle(
                             backgroundColor: MaterialStateProperty.all<Color>(Color.fromARGB(255, 37, 54, 101)),

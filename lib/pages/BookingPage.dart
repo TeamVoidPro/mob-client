@@ -34,12 +34,16 @@ class _BookingPage extends State<BookingPage> {
     return Scaffold(
       appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: const Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Icon(Icons.keyboard_arrow_left),
-        ],
-      )),
+          leading: IconButton(
+            icon: const Icon(
+              Icons.keyboard_arrow_left,
+              size: 30,
+            ),
+            onPressed: () {
+              Navigator.pushNamed(context, '/home');
+            },
+          ),
+      ),
       body: Center(
         child: SingleChildScrollView(
           child: Column(
@@ -121,7 +125,12 @@ class _BookingPage extends State<BookingPage> {
                   Row(
                     children: [
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () async {
+                          await launchUrl(Uri.parse(
+                              'google.navigation:q=6.890128,79.860594&key=AIzaSyDQ1BEqGpYixqC1UYfnkO-EluckHFwWegE'
+                            )
+                          );
+                        },
                         child: const Row(
                           children: [
                             Icon(Icons.directions_rounded,

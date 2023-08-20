@@ -39,7 +39,7 @@ class _WelcomePage extends State<WelcomePage> {
           Positioned(
               bottom: 0,
               left: 0,
-              height: 300,
+              height: 280,
               child: Container(
                 decoration: const BoxDecoration(
                   color: Color.fromARGB(255, 37, 54, 101),
@@ -52,7 +52,7 @@ class _WelcomePage extends State<WelcomePage> {
                 height: 50,
                 child: Column(children: [
                   SizedBox(height: 32),
-                  Text(
+                  const Text(
                     "WELCOME",
                     style: TextStyle(
                         color: Colors.white,
@@ -60,10 +60,10 @@ class _WelcomePage extends State<WelcomePage> {
                         fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 16),
-                  Padding(
+                  const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 24),
                     child: Text(
-                      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec eget leo vel nunc ultricies ultrices. Donec euismod, nisl eget aliquam ultricies,  ",
+                      "Welcome to our Vehicle Park Management app! Easily find, reserve, and track parking. Your hassle-free parking solution is here!",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white,
@@ -99,7 +99,7 @@ class _WelcomePage extends State<WelcomePage> {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () {
-                            Navigator.pushNamed(context, '/login');
+                            Navigator.pushNamed(context, '/register');
                           },
                           child: const Text(
                             'Sign Up',

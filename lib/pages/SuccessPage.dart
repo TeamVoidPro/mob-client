@@ -50,7 +50,10 @@ class _SuccessPage extends State<SuccessPage> {
           SizedBox(height: 10,),
           Container(
             margin: EdgeInsets.only(left: 50, right: 50),
-            child: ElevatedButton(onPressed: (){},
+            child: ElevatedButton(
+                onPressed: (){
+                  Navigator.pushNamed(context, '/home');
+                },
                 style: ElevatedButton.styleFrom(
                   primary: Color.fromARGB(255, 37, 54, 101),
                   padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
@@ -66,7 +69,8 @@ class _SuccessPage extends State<SuccessPage> {
                     SizedBox(width: 10,),
                     Text("Go Home")
                   ],
-                )
+                ),
+
             ),
           )
         ],

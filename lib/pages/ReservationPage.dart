@@ -28,7 +28,7 @@ class _ReservationPage extends State<ReservationPage> with SingleTickerProviderS
       appBar: AppBar(
         leading: IconButton(
           onPressed: (){
-            Navigator.pushNamed(context, '/book/payment');
+            Navigator.pushNamed(context, '/home');
           },
           icon: Icon(Icons.keyboard_arrow_left),
         ),

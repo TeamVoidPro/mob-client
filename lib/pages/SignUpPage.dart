@@ -1,4 +1,11 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:mob_client/components/FormComponent/InputText.dart';
+import 'package:mob_client/utils/Navigation.dart';
+import 'package:provider/provider.dart';
+
+import '../models/Driver.dart';
+import '../providers/userProvider.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -10,6 +17,32 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPage extends State<SignUpPage> {
 
   bool _value = false;
+  final Dio _dio = Dio();
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    dummyData();
+
+  }
+
+  void dummyData(){
+    _emailController.text = 'sstdinushan@gmail.com';
+    _passwordController.text = 'dinushan7727';
+    _confirmPasswordController.text = 'dinushan7727';
+    _firstNameController.text = 'Dinushan';
+    _lastNameController.text = 'Sivakumar';
+    _phoneController.text = '0771234567';
+  }
+
 
   // Terms and Conditions Dialog
   void _showDialog() {
@@ -33,6 +66,46 @@ class _SignUpPage extends State<SignUpPage> {
     );
   }
 
+  void _submit() async {
+    if (_formKey.currentState!.validate()) {
+      try {
+        final response = await _dio.post(
+          'https://10.0.2.2:7211/api/Driver/register',
+          data: {
+            "email": _emailController.text,
+            "password": _passwordController.text,
+            "confirmPassword": _confirmPasswordController.text,
+            "firstName": _firstNameController.text,
+            "lastName": _lastNameController.text,
+            "contactNumber": _phoneController.text,
+          },
+        );
+
+        // If server returns an OK response navigate to Login Page else show error
+        if (response.statusCode == 200) {
+          // final userDataProvider = Provider.of<userProvider>(context, listen: false);
+          final userDataProvider = context.read<userProvider>();
+          Driver driver= Driver.fromJson(response.data['driver']);
+
+          String token = response.data['token'];
+          userDataProvider.setUser(driver);
+          userDataProvider.setToken(token);
+
+          Navigation.push('/add-vehicle');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response.data['message']),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+
+      } catch (e) {
+        print(e);
+      }
+    }
+  }
 
 
 
@@ -42,7 +115,6 @@ class _SignUpPage extends State<SignUpPage> {
 
     // TODO: implement build
     return Scaffold(
-      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Color.fromARGB(255, 37, 54, 101),
@@ -51,7 +123,7 @@ class _SignUpPage extends State<SignUpPage> {
               onPressed: () {
                 Navigator.pushNamed(context, '/login');
               },
-              child: Text(
+              child: const Text(
                 "Sign In",
                 style: TextStyle(
                     color: Colors.white,
@@ -78,13 +150,13 @@ class _SignUpPage extends State<SignUpPage> {
           child: Stack(
             children: [
               Container(
-                  padding: EdgeInsets.only(top: 0, left: 20, right: 20),
+                  padding: const EdgeInsets.only(top: 0, left: 20, right: 20),
                   width: MediaQuery.of(context).size.width,
                   child: Column(
                     children: [
                       Container(
                         width: MediaQuery.of(context).size.width,
-                        child: Text(
+                        child: const Text(
                           "Sign Up",
                           style: TextStyle(
                               color: Colors.white,
@@ -92,10 +164,10 @@ class _SignUpPage extends State<SignUpPage> {
                               fontWeight: FontWeight.bold),
                         ),
                       ),
-                      SizedBox(height: 24),
+                      const SizedBox(height: 24),
                       Container(
                         width: MediaQuery.of(context).size.width,
-                        child: Text(
+                        child: const Text(
                           "when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries,",
                           style: TextStyle(
                               color: Colors.white,
@@ -108,8 +180,9 @@ class _SignUpPage extends State<SignUpPage> {
               Positioned(
                   bottom: 0,
                   left: 0,
-                  height: screenHeight * 0.65,
-                  child: Container(
+                  height: screenHeight * 0.60,
+                  child:
+                  Container(
                     decoration: const BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.only(
@@ -119,187 +192,148 @@ class _SignUpPage extends State<SignUpPage> {
                     ),
                     width: MediaQuery.of(context).size.width,
                     height: 50,
-                    child: Column(
-                      children: [
-                        SizedBox(height: 32),
-                        Container(
-                          width: MediaQuery.of(context).size.width,
-                          padding: EdgeInsets.only(left: 20, right: 20),
-                          child: TextField(
-                            decoration: InputDecoration(
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(20),
-                                borderSide: BorderSide(
-                                  color: Color.fromARGB(255, 37, 54, 101),
-                                ),
-                              ),
-                              floatingLabelStyle: TextStyle(
-                                color: Color.fromARGB(255, 37, 54, 101),
-                              ),
-                              labelText: 'Username',
-                              filled: true,
-                              fillColor: Color.fromARGB(255, 255, 255, 255),
-                              prefixIcon: Icon(Icons.person),
-                              prefixIconColor: Color.fromARGB(255, 37, 54, 101),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        Container(
-                          width: MediaQuery.of(context).size.width,
-                          padding: EdgeInsets.only(left: 20, right: 20),
-                          child: TextField(
-                            decoration: InputDecoration(
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(20),
-                                borderSide: BorderSide(
-                                  color: Color.fromARGB(255, 37, 54, 101),
-                                ),
-                              ),
-                              labelText: 'Email',
-                              filled: true,
-                              fillColor: Color.fromARGB(255, 255, 255, 255),
-                              prefixIcon: Icon(Icons.email),
-                              prefixIconColor: Color.fromARGB(255, 37, 54, 101),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        Container(
-                          width: MediaQuery.of(context).size.width,
-                          padding: EdgeInsets.only(left: 20, right: 20),
-                          child: TextField(
-                            obscureText: true,
-                            decoration: InputDecoration(
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(20),
-                                borderSide: BorderSide(
-                                  color: Color.fromARGB(255, 37, 54, 101),
-                                ),
-                              ),
-                              floatingLabelStyle: TextStyle(
-                                color: Color.fromARGB(255, 37, 54, 101),
-                              ),
-                              labelText: 'Password',
-                              filled: true,
-                              fillColor: Color.fromARGB(255, 255, 255, 255),
-                              prefixIcon: Icon(Icons.lock),
-                              prefixIconColor: Color.fromARGB(255, 37, 54, 101),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        Container(
-                          width: MediaQuery.of(context).size.width,
-                          padding: EdgeInsets.only(left: 20, right: 20),
-                          child: TextField(
-                            obscureText: true,
-                            decoration: InputDecoration(
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(20),
-                                borderSide: BorderSide(
-                                  color: Color.fromARGB(255, 37, 54, 101),
-                                ),
-                              ),
-                              labelText: 'Confirm Password',
-                              filled: true,
-                              fillColor: Color.fromARGB(255, 255, 255, 255),
-                              prefixIcon: Icon(Icons.lock),
-                              prefixIconColor: Color.fromARGB(255, 37, 54, 101),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 16),
-
-                        Container(
-                          width: MediaQuery.of(context).size.width,
-                          padding: EdgeInsets.only(left: 20, right: 20),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              // Checkbox to agree to terms and conditions
-                              Checkbox(
-                                visualDensity: VisualDensity.standard,
-
-                                value: _value,
-                                // change the size of the checkbox
-                                onChanged: (value) {
-                                  setState(() {
-                                    _value = value!;
-                                  });
-                                },
-                                // Make checkbox larger
-                                side: BorderSide(
-                                  width: 2,
-                                  color: Color.fromARGB(255, 37, 54, 101),
-                                ),
-                                activeColor: Color.fromARGB(255, 37, 54, 101),
-                              ),
-                              Row(
-                                children: [
-                                  Text(
-                                    "I agree to",
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      color: Color.fromARGB(255, 37, 54, 101),
-                                    ),
-                                  ),
-                                  TextButton(
-                                    onPressed: (){
-                                      _showDialog();
-                                    },
-                                    child:
-                                    Text(
-                                      "Terms and Conditions",
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        color: Color.fromARGB(255, 37, 54, 101),
-                                        decoration: TextDecoration.underline,
-                                      ),
-                                    ),
-                                  )
-                                ],
-                              )
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        Container(
-                          width: MediaQuery.of(context).size.width,
-                          padding: EdgeInsets.only(left: 20, right: 20),
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.pushNamed(context, "/add-vehicle");
-                            },
-                            child: Text(
-                              "Sign Up",
+                    child:
+                    Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: MediaQuery.of(context).size.width,
+                            alignment: Alignment.center,
+                            child: const Text(
+                              "Enter your details",
                               style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
+                                  color: Colors.black,
+                                  fontSize: 26,
                                   fontWeight: FontWeight.bold),
                             ),
-                            style: ElevatedButton.styleFrom(
-                              primary: Color.fromARGB(255, 37, 54, 101),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              inputText(
+                                controller: _firstNameController,
+                                labelText: "First Name",
+                                keyboardType: TextInputType.name,
+                                hintText: "Enter your first name",
+                                icon: Icons.person,
+                                width: MediaQuery.of(context).size.width * 0.5,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter your first name';
+                                  }
+                                  return null;
+                                },
                               ),
-                              padding: EdgeInsets.only(top: 16, bottom: 16),
+                              inputText(
+                                controller: _lastNameController,
+                                labelText: "Last Name",
+                                keyboardType: TextInputType.name,
+                                hintText: "Enter your last name",
+                                icon: Icons.person,
+                                width: MediaQuery.of(context).size.width * 0.5,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter your last name';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                          inputText(
+                            controller: _emailController,
+                            labelText: "Email",
+                            keyboardType: TextInputType.emailAddress,
+                            hintText: "Enter your email",
+                            icon: Icons.email,
+                            width: MediaQuery.of(context).size.width,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your email';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 24),
+                          inputText(
+                            controller: _phoneController,
+                            labelText: "Phone",
+                            keyboardType: TextInputType.phone,
+                            hintText: "Enter your phone number",
+                            icon: Icons.phone,
+                            width: MediaQuery.of(context).size.width,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your phone number';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 24),
+                          Row(
+                            children: [
+                              inputText(
+                                controller: _passwordController,
+                                labelText: "Password",
+                                keyboardType: TextInputType.visiblePassword,
+                                obscureText: true,
+                                hintText: "Enter your password",
+                                icon: Icons.lock,
+                                width: MediaQuery.of(context).size.width * 0.5,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter your password';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              inputText(
+                                controller: _confirmPasswordController,
+                                labelText: "Confirm Password",
+                                keyboardType: TextInputType.visiblePassword,
+                                obscureText: true,
+                                hintText: "Enter your password",
+                                icon: Icons.lock,
+                                width: MediaQuery.of(context).size.width * 0.5,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter your password';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                          Container(
+                            width: MediaQuery.of(context).size.width,
+                            padding: EdgeInsets.only(left: 20, right: 20),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                _submit();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                primary: Color.fromARGB(255, 37, 54, 101),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                padding: EdgeInsets.only(top: 16, bottom: 16),
+                              ),
+                              child: const Text(
+                                "Sign Up",
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ))
             ],
