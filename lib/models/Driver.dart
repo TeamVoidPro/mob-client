@@ -24,4 +24,16 @@ class Driver{
       json['profilePicture'],
     );
   }
+
+
+  toJson() {
+    return {
+      'id': driverId,
+      'firstName': FirstName,
+      'lastName': LastName,
+      'email': Email,
+      'contactNumber': ContactNo,
+      'profilePicture': ProfilePicture,
+    };
+  }
 }

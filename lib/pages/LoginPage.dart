@@ -1,7 +1,10 @@
+import 'dart:convert';
 import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:mob_client/pages/ChatPage.dart';
+import 'package:mob_client/pages/HomePage.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -28,10 +31,29 @@ class _LoginPage extends State<LoginPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    checkLoggedIn();
     // TODO : Remove before push
     _emailController.text = 'sstdinushan@gmail.com';
     _passwordController.text = 'dinushan7727';
   }
+
+  void checkLoggedIn() async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+    if(token != null){
+      userProvider uP = Provider.of<userProvider>(context,listen: false);
+      String driverString = prefs.getString('driver')!;
+      Map<String,dynamic> driverMap = jsonDecode(driverString);
+
+      Driver driver = new Driver.fromJson(driverMap);
+      uP.setUser(driver);
+      uP.setToken(token);
+      Navigator.push(context, MaterialPageRoute (
+          builder: (BuildContext context) => const HomePage(),
+    ));
+    }
+  }
+
 
   @override
   void dispose() {
@@ -92,10 +114,14 @@ class _LoginPage extends State<LoginPage> {
       );
 
       final userDataProvider = Provider.of<userProvider>(context, listen: false);
+      SharedPreferences prefs = await SharedPreferences.getInstance();
       print(response.data);
       Driver driver= Driver.fromJson(response.data['driver']);
 
       String token = response.data['token'];
+      prefs.setString('token', token);
+      var driverJSON = driver.toJson();
+      prefs.setString('driver', jsonEncode(driverJSON));
       userDataProvider.setUser(driver);
       userDataProvider.setToken(token);
       return true;

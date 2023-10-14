@@ -1,9 +1,15 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:intl/intl.dart';
+import 'package:mob_client/pages/FindPark.dart';
 import 'package:mob_client/pages/Services.dart';
 import 'package:mob_client/pages/Settings.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -12,6 +18,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../components/AppBar.dart';
 import '../components/HalfCircleClipperTopLeft.dart';
+import '../data/PlacesAutoCompleteResponse.dart';
+import '../data/Prediction.dart';
+import '../utils/Request.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -22,168 +31,166 @@ class HomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<HomePage> {
   bool _isCollapsed = false;
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   Completer<GoogleMapController> mapController = Completer();
+  Set<Marker> _markers = Set();
   double _centerLatitude = 6.899138;
   double _centerLongitude = 79.860729;
+  List<Map<String, dynamic>> _carParks = [];
+  List<Prediction> _predictions = [];
+  final TextEditingController searchController = TextEditingController();
+  double userRadius = 5.0;
+  double bottomSheetHeight = 0.65;
+
+  // input text field for diameter
+  TextEditingController diameterController = TextEditingController(text: "5");
+
+  // input text field for rate
+  TextEditingController rateController = TextEditingController();
+
+  // input text field for arrival time
+  TextEditingController arrivalTimeController = TextEditingController();
+
+  // input text field for departure time
+  TextEditingController departureTimeController = TextEditingController();
+
   static final CameraPosition _kGoogle = const CameraPosition(
     target: LatLng(6.899138, 79.860729),
     zoom: 14.4746,
   );
 
-  final List<Marker> _markers = <Marker>[
-    Marker(
-        markerId: MarkerId('1'),
-        position: LatLng(6.8997, 79.8604),
-        infoWindow: InfoWindow(
-          title: 'My Position',
-        )),
+  //define circles
+  List<Circle> circles = [
+    Circle(
+      circleId: CircleId('1'),
+      center: LatLng(6.8997, 79.8604),
+      radius: 1000,
+      fillColor: Colors.blue.withOpacity(0.2),
+      strokeColor: Colors.blue,
+      strokeWidth: 1,
+    )
   ];
 
-  List<Map<String, dynamic>> _carParks = [
-    {
-      'name': 'Liberty Plaza Car Park',
-      'address': 'Liberty Plaza, Colombo 00300',
-      'distance': '1.2km',
-      'available': '15',
-      'total': '30',
-      'lat': 6.916533,
-      'lng': 79.860431,
-    },
-    {
-      'name': 'Majestic City Car Park',
-      'address': 'Majestic City, Bambalapitiya, Colombo',
-      'distance': '2.0km',
-      'available': '8',
-      'total': '15',
-      'lat': 6.891632,
-      'lng': 79.854845,
-    },
-    {
-      'name': 'Galle Face Green Car Park',
-      'address': 'Galle Face, Colombo 00300',
-      'distance': '1.5km',
-      'available': '20',
-      'total': '25',
-      'lat': 6.927193,
-      'lng': 79.846602,
-    },
-    {
-      'name': 'Independence Square Car Park',
-      'address': 'Independence Square, Colombo 00700',
-      'distance': '2.8km',
-      'available': '12',
-      'total': '18',
-      'lat': 6.911217,
-      'lng': 79.877742,
-    },
-    {
-      'name': 'Crescat Boulevard Car Park',
-      'address': 'Crescat Boulevard, Colombo',
-      'distance': '0.8km',
-      'available': '5',
-      'total': '10',
-      'lat': 6.926888,
-      'lng': 79.845111,
-    },
-    {
-      'name': 'Nelum Pokuna Car Park',
-      'address': 'Nelum Pokuna Mawatha, Colombo 00700',
-      'distance': '1.0km',
-      'available': '18',
-      'total': '25',
-      'lat': 6.914904,
-      'lng': 79.877088,
-    },
-    {
-      'name': 'Racecourse Car Park',
-      'address': 'Reid Avenue, Colombo 00700',
-      'distance': '0.4km',
-      'available': '7',
-      'total': '12',
-      'lat': 6.898458,
-      'lng': 79.864799,
-    },
-    {
-      'name': 'Dutch Hospital Car Park',
-      'address': 'Hospital Street, Colombo 00100',
-      'distance': '2.3km',
-      'available': '9',
-      'total': '15',
-      'lat': 6.932320,
-      'lng': 79.844012,
-    },
-    {
-      'name': 'Mount Lavinia Beach Parking',
-      'address': 'Mount Lavinia, Colombo 10370',
-      'distance': '10.5km',
-      'available': '22',
-      'total': '30',
-      'lat': 6.833785,
-      'lng': 79.855270,
-    },
-    {
-      'name': 'Viharamahadevi Park Car Park',
-      'address': 'Viharamahadevi Park, Colombo 00700',
-      'distance': '1.8km',
-      'available': '14',
-      'total': '20',
-      'lat': 6.918818,
-      'lng': 79.864850,
-    },
-    {
-      'name': 'Wellawatte Beach Parking',
-      'address': 'Wellawatte, Colombo 00600',
-      'distance': '5.0km',
-      'available': '10',
-      'total': '18',
-      'lat': 6.874105,
-      'lng': 79.857752,
-    },
-    {
-      'name': 'Pettah Market Car Park',
-      'address': 'Main Street, Colombo 01100',
-      'distance': '2.0km',
-      'available': '5',
-      'total': '10',
-      'lat': 6.937283,
-      'lng': 79.850404,
-    },
-    {
-      'name': 'One Galle Face Car Park',
-      'address': 'One Galle Face Mall, Galle Road, Colombo',
-      'distance': '2.5km',
-      'available': '20',
-      'total': '28',
-      'lat': 6.924123,
-      'lng': 79.848760,
-    },
-    {
-      'name': 'Marino Mall Car Park',
-      'address': 'Galle Road, Colombo 00300',
-      'distance': '3.2km',
-      'available': '12',
-      'total': '20',
-      'lat': 6.924959,
-      'lng': 79.854116,
-    },
-    {
-      'name': 'Cinnamon Gardens Car Park',
-      'address': 'Cinnamon Gardens, Colombo 00700',
-      'distance': '1.5km',
-      'available': '8',
-      'total': '15',
-      'lat': 6.914447,
-      'lng': 79.864066,
-    },
-    // Add more places as needed
-  ];
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getUserCurrentLocation();
+    getParks();
+  }
+
+  void FindParkByTime() {
+    Object? data = {
+      'DriverLatitude': _centerLatitude,
+      'DriverLongitude': _centerLongitude,
+      'ArrivalTime': arrivalTimeController.text,
+      'DepartureTime': departureTimeController.text,
+      'Radius': 800,
+    };
+    //validate ArrivalTime and DepartureTime
+    if (arrivalTimeController.text.isEmpty ||
+        departureTimeController.text.isEmpty) {
+      // show banner
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please fill all the fields'),
+          duration: const Duration(seconds: 2),
+          elevation: 100,
+          behavior: SnackBarBehavior.floating,
+          dismissDirection: DismissDirection.up,
+          action: SnackBarAction(
+            label: 'Close',
+            onPressed: () {
+              // Code to execute.
+            },
+          ),
+        ),
+      );
+      return;
+    }
+
+    // check arrivalTime < departureTime
+    if (arrivalTimeController.text.compareTo(departureTimeController.text) >
+        0) {
+      // show banner
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              const Text('Arrival Time should be less than Departure Time'),
+          duration: const Duration(seconds: 2),
+          action: SnackBarAction(
+            label: 'Close',
+            onPressed: () {
+              // Code to execute.
+            },
+          ),
+        ),
+      );
+      return;
+    }
+
+    sendAuthPOSTRequest("/getPark", data).then((value) => {
+          print(value),
+          // Navigator.pushNamed(context, '/book'),
+        });
+    // Navigator.push(context, MaterialPageRoute(builder: (context) => FindPark()));
+  }
+
+  Future<void> getParks() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('userToken');
+    Object? data = {
+      'DriverLatitude': _centerLatitude,
+      'DriverLongitude': _centerLongitude,
+      'ArrivalTime': "",
+      'DepartureTime': "",
+      'Radius': 800,
+    };
+    BitmapDescriptor carIcon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(
+        // size: Size(2, 2),
+        platform: TargetPlatform.android,
+      ), // Set the size you want
+      'assets/Icons/park.png', // Path to your car icon image in the assets folder
+    );
+    var res = await sendAuthPOSTRequest("getPark", data);
+    print(res?.statusMessage);
+    Map<String, dynamic> response = jsonDecode(res.toString());
+    setState(() {
+      var carParks = response['carParks'];
+
+      Set<Marker> _markersToShow = Set();
+      if (carParks) {
+        for (int i = 0; i < carParks.length; i++) {
+          _carParks.add(carParks[i]);
+
+          _markersToShow.add(
+            Marker(
+              markerId: MarkerId(carParks[i]['name']),
+              position: LatLng(carParks[i]['lat'], carParks[i]['lng']),
+              infoWindow: InfoWindow(
+                title: carParks[i]['name'],
+                snippet: carParks[i]['address'],
+              ),
+              icon: carIcon,
+              flat: true,
+            ),
+          );
+        }
+        print("MARKERS TO SHOW");
+        print(_markersToShow);
+        setState(() {
+          _markers = _markersToShow.toSet();
+        });
+      }
+    });
+  }
 
   void getUserCurrentLocation() async {
     await Geolocator.requestPermission()
         .then((value) {})
         .onError((error, stackTrace) async {
       await Geolocator.requestPermission();
-      print("ERROR" + error.toString());
     });
     var location = await Geolocator.getCurrentPosition();
     CameraPosition cameraPosition = new CameraPosition(
@@ -200,6 +207,69 @@ class _MyHomePageState extends State<HomePage> {
     // draw circle around current location
   }
 
+  Future<void> PlacesAutoComplete(String query) async {
+    Uri uri = Uri.https(
+      "maps.googleapis.com",
+      "/maps/api/place/autocomplete/json",
+      {
+        "key": "AIzaSyDFl537nYb0R7zQNcXk9Xrmniy00aM7sK4",
+        "input": query,
+        "components": "country:lk",
+      },
+    );
+    Dio _dio = new Dio();
+    var response = await _dio.get(uri.toString());
+    PlacesAutoCompleteResponse placesAutoCompleteResponse =
+        PlacesAutoCompleteResponse.fromJson(response.data);
+    List<Prediction> predictions = placesAutoCompleteResponse.predictions;
+    setState(() {
+      _predictions = predictions;
+    });
+  }
+
+  void selectPlace(String placeId) async {
+    Uri uri = Uri.https(
+      "maps.googleapis.com",
+      "/maps/api/place/details/json",
+      {
+        "key": "AIzaSyDFl537nYb0R7zQNcXk9Xrmniy00aM7sK4",
+        "place_id": placeId,
+      },
+    );
+    Dio _dio = new Dio();
+    var response = await _dio.get(uri.toString());
+    print(response.data);
+    Map<String, dynamic> placeDetails = response.data['result'];
+    CameraPosition cameraPosition = new CameraPosition(
+      target: LatLng(
+        placeDetails['geometry']['location']['lat'],
+        placeDetails['geometry']['location']['lng'],
+      ),
+      zoom: 16,
+    );
+    final GoogleMapController controller = await mapController.future;
+    controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+    //add radius circle
+    //add markers
+
+    setState(() {
+      _predictions = [];
+      circles = [
+        Circle(
+          circleId: CircleId('1'),
+          center: LatLng(
+            placeDetails['geometry']['location']['lat'],
+            placeDetails['geometry']['location']['lng'],
+          ),
+          radius: 800,
+          fillColor: Colors.blue.withOpacity(0.2),
+          strokeColor: Colors.blue,
+          strokeWidth: 1,
+        )
+      ];
+    });
+  }
+
   // Modal for set to preferred location diameter and rate
   void _showSetPreferredLocationModal() {
     showModalBottomSheet<void>(
@@ -214,10 +284,6 @@ class _MyHomePageState extends State<HomePage> {
         context: context,
         isScrollControlled: true,
         builder: (BuildContext context) {
-          // input text field for diameter
-          TextEditingController diameterController = TextEditingController();
-          // input text field for rate
-          TextEditingController rateController = TextEditingController();
           return Padding(
             padding: EdgeInsets.only(
                 bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -228,102 +294,109 @@ class _MyHomePageState extends State<HomePage> {
                   color: Colors.white,
                   child: Container(
                     padding: EdgeInsets.all(20),
-                    child: Column(
-                      children: [
-                        Container(
-                          margin: EdgeInsets.only(top: 10),
-                          child: Text(
-                            "Set Preferred Location",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(top: 10),
-                          child: Text(
-                            "Set your preferred location to find the best parking spots for you.",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.normal,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(top: 10),
-                          child: Text(
-                            "Diameter",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.normal,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(top: 10),
-                          child: TextFormField(
-                            controller: diameterController,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              hintText: "Diameter",
-                              hintStyle: TextStyle(
-                                color: Color.fromARGB(255, 120, 119, 115),
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(top: 10),
-                          child: Text(
-                            "Rate",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.normal,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(top: 10),
-                          child: TextFormField(
-                            controller: rateController,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              hintText: "Rate",
-                              hintStyle: TextStyle(
-                                color: Color.fromARGB(255, 120, 119, 115),
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(top: 10),
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                Color.fromARGB(255, 37, 54, 101),
-                              ),
-                            ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          Container(
+                            margin: EdgeInsets.only(top: 10),
                             child: Text(
-                              "Set",
+                              "Set Preferred Location",
                               style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
+                                fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                          Container(
+                            margin: EdgeInsets.only(top: 10),
+                            child: Text(
+                              "Set your preferred location to find the best parking spots for you.",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            margin: EdgeInsets.only(top: 10),
+                            child: Text(
+                              "Diameter",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            margin: EdgeInsets.only(top: 10),
+                            child: TextFormField(
+                              controller: diameterController,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                hintText: "Diameter",
+                                hintStyle: TextStyle(
+                                  color: Color.fromARGB(255, 120, 119, 115),
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Container(
+                            margin: EdgeInsets.only(top: 10),
+                            child: Text(
+                              "Rate",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            margin: EdgeInsets.only(top: 10),
+                            child: TextFormField(
+                              controller: rateController,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                hintText: "Rate",
+                                hintStyle: TextStyle(
+                                  color: Color.fromARGB(255, 120, 119, 115),
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Container(
+                            margin: EdgeInsets.only(top: 10),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  userRadius =
+                                      double.parse(diameterController.text);
+                                });
+                                Navigator.pop(context);
+                              },
+                              style: ButtonStyle(
+                                backgroundColor: MaterialStateProperty.all<Color>(
+                                  Color.fromARGB(255, 37, 54, 101),
+                                ),
+                              ),
+                              child: Text(
+                                "Set",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -347,125 +420,198 @@ class _MyHomePageState extends State<HomePage> {
         context: context,
         isScrollControlled: true,
         builder: (BuildContext context) {
-          // input text field for arrival time
-          TextEditingController arrivalTimeController =
-              TextEditingController();
-          // input text field for departure time
-          TextEditingController departureTimeController =
-              TextEditingController();
           return Padding(
             padding: EdgeInsets.only(
                 bottom: MediaQuery.of(context).viewInsets.bottom),
             child: StatefulBuilder(
               builder: (BuildContext context, StateSetter setState) {
                 return Container(
-                  height: 400,
-                  color: Colors.white,
+                  height: MediaQuery.of(context).size.height * bottomSheetHeight,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
+                    ),
+                  ),
                   child: Container(
                     padding: EdgeInsets.all(20),
-                    child: Column(
-                      children: [
-                        Container(
-                          margin: EdgeInsets.only(top: 10),
-                          child: Text(
-                            "Set Preferred Time",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(top: 10),
-                          child: Text(
-                            "Set your preferred time to find the best parking spots for you.",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.normal,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(top: 10),
-                          child: Text(
-                            "Arrival Time",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.normal,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(top: 10),
-                          child: FormBuilderDateTimePicker(
-                            name: 'Arrival Time',
-                            inputType: InputType.both,
-                            decoration: InputDecoration(
-                              hintText: "Arrival Time",
-                              hintStyle: TextStyle(
-                                color: Color.fromARGB(255, 120, 119, 115),
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            onChanged: (value) {
-                              print(value);
-                            },
-                          )
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(top: 10),
-                          child: Text(
-                            "Departure Time",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.normal,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(top: 10),
-                          child:
-                          FormBuilderDateTimePicker(
-                            name: 'Departure Time',
-                            inputType: InputType.both,
-                            decoration: InputDecoration(
-                              hintText: "Departure Time",
-                              hintStyle: TextStyle(
-                                color: Color.fromARGB(255, 120, 119, 115),
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            onChanged: (value) {
-                              print(value);
-                            },
-                          )
-                        ),
-                        Container(
-                          margin: const EdgeInsets.only(top: 10),
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                Color.fromARGB(255, 37, 54, 101),
-                              ),
-                            ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          Container(
+                            margin: EdgeInsets.only(top: 10),
                             child: Text(
-                              "Set",
+                              "Set Preferred Time",
                               style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
+                                fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                          Container(
+                            margin: EdgeInsets.only(top: 10),
+                            child: Text(
+                              "Set your preferred time to find the best parking spots for you.",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            margin: EdgeInsets.only(top: 10),
+                            child: Text(
+                              "Arrival Date & Time",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                          Container(
+                              margin: EdgeInsets.only(top: 10),
+                              child: FormBuilderDateTimePicker(
+                                name: 'Arrival Date & Time',
+                                format: DateFormat("y MMM d HH:mm"),
+                                inputType: InputType.both,
+                                decoration: InputDecoration(
+                                  hintText: "Arrival Time",
+                                  hintStyle: TextStyle(
+                                    color: Color.fromARGB(255, 120, 119, 115),
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  suffixIcon: Icon(Icons.calendar_today),
+                                ),
+                                initialDate: DateTime.now(),
+                                onChanged: (value) {
+                                  print(value);
+                                },
+                                validator: (value) {
+                                  if (value == null) {
+                                    setState(() {
+                                      bottomSheetHeight = 0.75;
+                                    });
+                                    return 'Please select Arrival Date & Time';
+                                  }
+                                  return null;
+                                },
+                              )),
+                          Container(
+                            margin: EdgeInsets.only(top: 10),
+                            child: Text(
+                              "Departure Date & Time",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                          Container(
+                              margin: EdgeInsets.only(top: 10),
+                              child: FormBuilderDateTimePicker(
+                                name: 'Departure Date & Time',
+                                inputType: InputType.both,
+
+                                initialDate: DateTime.now(),
+                                validator: (value) {
+                                  if (value == null) {
+                                    setState(() {
+                                      bottomSheetHeight = 0.75;
+                                    });
+                                    return 'Please select Departure Date & Time';
+                                  }
+                                  return null;
+                                },
+                                decoration: InputDecoration(
+                                  hintText: "Departure Time",
+                                  hintStyle: TextStyle(
+                                    color: Color.fromARGB(255, 120, 119, 115),
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  suffixIcon: Icon(Icons.calendar_today),
+                                ),
+                                onChanged: (value) {
+                                  print(value);
+                                },
+                              )),
+                          // Select Vehicle
+                          Container(
+                            margin: EdgeInsets.only(top: 10),
+                            child: Text(
+                              "Select Vehicle",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            margin: EdgeInsets.only(top: 10),
+                            child:
+                            //Select Vehicle
+                            DropdownButtonFormField(
+                              decoration: InputDecoration(
+                                hintText: "Select Vehicle",
+                                hintStyle: TextStyle(
+                                  color: Color.fromARGB(255, 120, 119, 115),
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              items: [
+                                DropdownMenuItem(
+                                  child: Text("Vehicle 1"),
+                                  value: 1,
+                                ),
+                                DropdownMenuItem(
+                                  child: Text("Vehicle 2"),
+                                  value: 2,
+                                ),
+                                DropdownMenuItem(
+                                  child: Text("Vehicle 3"),
+                                  value: 3,
+                                ),
+                              ],
+                              onChanged: (value) {
+                                print(value);
+                              },
+                            ),
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Container(
+                            margin: const EdgeInsets.only(top: 10),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                if (_formKey.currentState!.validate()){
+                                  FindParkByTime();
+                                }
+                              },
+                              style: ButtonStyle(
+                                backgroundColor: MaterialStateProperty.all<Color>(
+                                  Color.fromARGB(255, 37, 54, 101),
+                                ),
+                              ),
+                              child: Text(
+                                "Find Parking",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -475,36 +621,12 @@ class _MyHomePageState extends State<HomePage> {
         });
   }
 
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    getUserCurrentLocation();
-    markParkingLocations();
-  }
-
   Future<void> getUserToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('userToken');
   }
 
-  void markParkingLocations() {
-    for (int i = 0; i < _carParks.length; i++) {
-      _markers.add(
-        Marker(
-          markerId: MarkerId(_carParks[i]['name']),
-          position: LatLng(_carParks[i]['lat'], _carParks[i]['lng']),
-          infoWindow: InfoWindow(
-            title: _carParks[i]['name'],
-            snippet: _carParks[i]['address'],
-          ),
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueViolet,
-          ),
-        ),
-      );
-    }
-  }
+  void markParkingLocations() {}
 
   void _showBottomDrawer() {
     showModalBottomSheet<void>(
@@ -542,337 +664,191 @@ class _MyHomePageState extends State<HomePage> {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
 
-    return Scaffold(
-        appBar: appBarComponent(context),
-        drawer: drawerComponent(context),
-        resizeToAvoidBottomInset: false,
-        // Add the rest of your content below
-        body: SafeArea(
-          child: Stack(
-            children: [
-              SafeArea(
-                child: Column(
+    return WillPopScope(
+        onWillPop: () async => false,
+        child: Scaffold(
+            appBar: appBarComponent(context),
+            drawer: drawerComponent(context),
+            resizeToAvoidBottomInset: false,
+            // Add the rest of your content below
+            body: SafeArea(
+              child: Stack(
                 children: [
-                  Container(
-                    width: screenWidth,
-                    height: screenHeight * 0.54,
-                    margin: EdgeInsets.only(top: 0),
-                    child: GoogleMap(
-                      initialCameraPosition: _kGoogle,
-                      markers: Set<Marker>.of(_markers),
-                      myLocationEnabled: true,
-                      mapType: MapType.normal,
-                      mapToolbarEnabled: true,
-                      compassEnabled: true,
-                      myLocationButtonEnabled: false,
-                      onMapCreated: (GoogleMapController controller) {
-                        mapController.complete(controller);
-                      },
-                      circles: Set.from([
-                        Circle(
-                          circleId: CircleId('1'),
-                          center: LatLng(6.8997, 79.8604),
-                          radius: 800,
-                          fillColor: Colors.blue.withOpacity(0.2),
-                          strokeColor: Colors.blue,
-                          strokeWidth: 1,
-                        )
-                      ]),
-                      trafficEnabled: true,
-                      fortyFiveDegreeImageryEnabled: true,
-                    ),
-                  ),
-                  SingleChildScrollView(
-                    child: AnimatedContainer(
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(20),
-                            topRight: Radius.circular(20),
+                  SafeArea(
+                    child: Stack(
+                      children: [
+                        Container(
+                          width: screenWidth,
+                          height: screenHeight,
+                          margin: EdgeInsets.only(top: 0),
+                          child: GoogleMap(
+                            initialCameraPosition: _kGoogle,
+                            markers: _markers,
+                            myLocationEnabled: true,
+                            mapType: MapType.normal,
+                            mapToolbarEnabled: true,
+                            compassEnabled: true,
+                            myLocationButtonEnabled: false,
+                            onMapCreated: (GoogleMapController controller) {
+                              mapController.complete(controller);
+                            },
+                            circles: Set.from(circles),
+                            trafficEnabled: true,
+                            fortyFiveDegreeImageryEnabled: true,
                           ),
                         ),
-                        width: MediaQuery.of(context).size.width,
-                        duration: Duration(milliseconds: 300),
-                        height: 300,
-                        // Update height based on collapse state
-                        child:
-                        Padding(
-                          padding: EdgeInsets.only(top: 10,bottom: 10),
-                          child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Container(
-                                  alignment: Alignment.center,
-                                  padding: EdgeInsets.only(left: 16, right: 16),
-                                  child:
-                                  Row(
-                                    mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Column(
-                                        mainAxisAlignment: MainAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            "Parking Spots Around You",
-                                            style: TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                          Text(
-                                            "Today 10:00 AM - 12:30 PM (2.30 hrs)",
-                                            style: TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.normal),
-                                          ),
-                                        ],
-                                      ),
-                                      IconButton(
-                                          onPressed: () {
-                                            _showSetPreferredTimeModal();
-                                          },
-                                          style: ButtonStyle(
-                                            backgroundColor:
-                                            MaterialStateProperty.all<Color>(
-                                                Color.fromARGB(
-                                                    255, 37, 54, 101)),
-                                            shape: MaterialStateProperty.all<
-                                                RoundedRectangleBorder>(
-                                              RoundedRectangleBorder(
-                                                borderRadius:
-                                                BorderRadius.circular(10),
-                                                side: BorderSide(
-                                                    color: Color.fromARGB(
-                                                        255, 37, 54, 101)),
-                                              ),
-                                            ),
-                                          ),
-                                          icon: Icon(
-                                            Icons.calendar_month,
-                                            color: Colors.white,
-                                          ))
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                //Horizontally scrollable list
-                                Expanded(
-                                  child: ListView.builder(
-                                    itemCount: _carParks.length,
-                                    scrollDirection: Axis.horizontal,
-                                    itemBuilder: (BuildContext context, int index) {
-                                      Map<String, dynamic> carPark =
-                                      _carParks[index];
-                                      return
-                                        Container(
-                                          height: 150,
-                                          width: 300,
-                                          alignment: Alignment.center,
-                                          margin: EdgeInsets.only(right: 8, left: 8),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius: BorderRadius.circular(20),
-                                            border: Border.all(
-                                              color: Color.fromARGB(255, 37, 54, 101),
-                                            ),
-                                          ),
-                                          padding: EdgeInsets.all(8),
-                                          child: SingleChildScrollView(
-                                            child: Column(
-                                              mainAxisAlignment:
-                                              MainAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  carPark['name'],
-                                                  style: TextStyle(
-                                                    fontSize: 18,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                                SizedBox(height: 2),
-                                                Row(
-                                                  mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                                  children: [
-                                                    Icon(
-                                                      Icons.location_on_outlined,
-                                                      size: 20,
-                                                      color: Color.fromARGB(
-                                                          255, 37, 54, 101),
-                                                    ),
-                                                    Text(
-                                                      carPark['address'],
-                                                      softWrap: true,
-                                                      textWidthBasis:
-                                                      TextWidthBasis.longestLine,
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        fontWeight: FontWeight.normal,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                SizedBox(height: 2),
-                                                // Rating Stars
-                                                RatingBar.builder(
-                                                  tapOnlyMode: true,
-                                                  initialRating: 3,
-                                                  minRating: 1,
-                                                  direction: Axis.horizontal,
-                                                  allowHalfRating: false,
-                                                  itemCount: 5,
-                                                  itemSize: 25,
-                                                  ignoreGestures: true,
-                                                  itemPadding: EdgeInsets.symmetric(
-                                                      horizontal: 0.5),
-                                                  itemBuilder: (context, _) => Icon(
-                                                    Icons.star,
-                                                    color: Colors.amber,
-                                                  ),
-                                                  onRatingUpdate: (rating) {
-                                                    print(rating);
-                                                  },
-                                                ),
-                                                Row(
-                                                  mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                                  children: [
-                                                    Icon(
-                                                      Icons.directions_car_outlined,
-                                                      color: Color.fromARGB(
-                                                          255, 37, 54, 101),
-                                                    ),
-                                                    Text(
-                                                      " ${carPark['distance']}",
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight: FontWeight.normal,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                SizedBox(height: 2),
-                                                Row(
-                                                  mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                                  children: [
-                                                    Text(
-                                                      "LKR ${carPark['available']} / hr",
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight: FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                SizedBox(height: 2),
-                                                Row(
-                                                  mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                                  children: [
-                                                    ElevatedButton(
-                                                      onPressed: () {
-                                                        Navigator.pushNamed(
-                                                            context, '/book');
-                                                      },
-                                                      style: ButtonStyle(
-                                                        backgroundColor:
-                                                        MaterialStateProperty.all<
-                                                            Color>(
-                                                          Color.fromARGB(
-                                                              255, 37, 54, 101),
-                                                        ),
-                                                      ),
-                                                      child: Text(
-                                                        "Book Now",
-                                                        style: TextStyle(
-                                                          fontSize: 16,
-                                                          color: Colors.white,
-                                                          fontWeight: FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                    )
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        );
-                                    },
-                                  ),
-                                ),
-                              ]),
-                        )
-                    ),
-                  ),
-                ],
-              ),
-              ),
-              Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    margin: EdgeInsets.only(top: 5,left: 5,right: 5),
-                    width: MediaQuery.of(context).size.width,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Search Bar
-                        Container(
-                          width: MediaQuery.of(context).size.width * 0.95,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                        Positioned(
+                          bottom: 5,
+                          left: 0,
+                          right: 0,
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Container(
-                                margin: EdgeInsets.only(left: 20),
-                                child: Icon(
-                                  Icons.search,
-                                  color: Color.fromARGB(255, 120, 119, 115),
-                                ),
-                              ),
-                              Container(
-                                width: 200,
-                                margin: EdgeInsets.only(left: 20),
-                                child: TextField(
-                                  onChanged: (value) {
-                                    //Do something with the user input.
-                                    print(value);
-                                  },
-                                  decoration: InputDecoration(
-                                    hintText: "Search",
-                                    hintStyle: TextStyle(
-                                      color: Color.fromARGB(255, 120, 119, 115),
-                                    ),
-                                    border: InputBorder.none,
-                                  ),
-                                ),
-                              ),
-                              //Filter Button
-                              Container(
-                                margin: EdgeInsets.only(left: 0),
-                                child: IconButton(
+                              ElevatedButton(
                                   onPressed: () {
-                                    _showSetPreferredLocationModal();
+                                    _showSetPreferredTimeModal();
                                   },
-                                  icon: Icon(
-                                    Icons.filter_alt_outlined,
-                                    color: Color.fromARGB(255, 120, 119, 115),
+                                  style: ButtonStyle(
+                                    padding:
+                                        MaterialStateProperty.all<EdgeInsets>(
+                                      EdgeInsets.only(
+                                        top: 15,
+                                        bottom: 15,
+                                        left: 20,
+                                        right: 20,
+                                      ),
+                                    ),
+                                    backgroundColor:
+                                        MaterialStateProperty.all<Color>(
+                                      Color.fromARGB(255, 37, 54, 101),
+                                    ),
                                   ),
-                                ),
-                              ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.search,
+                                        color: Colors.white,
+                                      ),
+                                      SizedBox(
+                                        width: 10,
+                                      ),
+                                      Text(
+                                        "Find Parking",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ))
                             ],
                           ),
                         ),
                       ],
                     ),
-                  )),
-            ],
-          ),
-        ));
+                  ),
+                  Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        margin: EdgeInsets.only(top: 5, left: 5, right: 5),
+                        width: MediaQuery.of(context).size.width,
+                        height: MediaQuery.of(context).size.height * 0.5,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            // Search Bar
+                            Container(
+                              width: MediaQuery.of(context).size.width * 0.95,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    margin: EdgeInsets.only(left: 20),
+                                    child: Icon(
+                                      Icons.search,
+                                      color: Color.fromARGB(255, 120, 119, 115),
+                                    ),
+                                  ),
+                                  Container(
+                                    width: 250,
+                                    margin: EdgeInsets.only(left: 20),
+                                    child: TextField(
+                                      onChanged: (value) {
+                                        //Do something with the user input.
+                                        PlacesAutoComplete(value);
+                                      },
+                                      controller: searchController,
+                                      decoration: InputDecoration(
+                                        hintText: "Search",
+                                        hintStyle: TextStyle(
+                                          color: Color.fromARGB(
+                                              255, 120, 119, 115),
+                                        ),
+                                        border: InputBorder.none,
+                                      ),
+                                    ),
+                                  ),
+                                  //Filter Button
+                                  Container(
+                                    margin: EdgeInsets.only(left: 0),
+                                    child: IconButton(
+                                      onPressed: () {
+                                        _showSetPreferredLocationModal();
+                                      },
+                                      icon: Icon(
+                                        Icons.filter_alt_outlined,
+                                        color:
+                                            Color.fromARGB(255, 120, 119, 115),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (_predictions.length > 0)
+                              Expanded(
+                                flex: 1,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.vertical,
+                                  primary: false,
+                                  itemCount: _predictions.length,
+                                  itemBuilder: (context, index) => ColoredBox(
+                                    color: Colors.white,
+                                    child: ListTile(
+                                      onTap: () {
+                                        searchController.text =
+                                            _predictions[index].description;
+                                        selectPlace(
+                                            _predictions[index].placeId);
+                                        setState(() {
+                                          _predictions = [];
+                                        });
+                                      },
+                                      title: Text(
+                                        _predictions[index].description,
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )
+                          ],
+                        ),
+                      )),
+                ],
+              ),
+            )));
   }
 }

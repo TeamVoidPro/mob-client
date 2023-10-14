@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mob_client/models/Driver.dart';
 import 'package:mob_client/providers/userProvider.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../pages/ReservationPage.dart';
 import '../pages/Services.dart';
@@ -142,8 +143,10 @@ Widget drawerComponent(BuildContext context) {
                         Icons.logout,
                         color: Colors.white,
                       ),
-                      onPressed: () {
+                      onPressed: () async {
                         _userProvider.clearAll();
+                        SharedPreferences prefs = await SharedPreferences.getInstance();
+                        prefs.clear();
                         Navigator.pushNamed(context, '/login');
                       },
                     ),

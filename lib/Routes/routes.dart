@@ -13,10 +13,17 @@ import 'package:mob_client/pages/SuccessPage.dart';
 // import 'package:mob_client/pages/Test.dart';
 import 'package:mob_client/pages/ThankYou.dart';
 import 'package:mob_client/pages/WelcomePage.dart';
+import 'package:mob_client/providers/userProvider.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../pages/BookingPaymentPage.dart';
+import '../pages/FindPark.dart';
 import '../pages/HomePage.dart';
+import '../providers/userProvider.dart';
+import '../providers/userProvider.dart';
+import '../utils/Navigation.dart';
 
 Widget _splashScreen (BuildContext context){
   return Container(
@@ -34,6 +41,8 @@ Widget _splashScreen (BuildContext context){
   );
 }
 
+final sharedPref = SharedPreferences.getInstance();
+
 final Map<String, WidgetBuilder> routes = {
   '/login': (context) => LoginPage(),
   // '/welcome': (context) => const WelcomePage(),
@@ -48,6 +57,7 @@ final Map<String, WidgetBuilder> routes = {
   '/register': (context) => SignUpPage(),
   '/add-vehicle': (context) => AddVehiclePage(),
   '/home': (context) => HomePage(),
+  '/nearby': (context) => FindPark(),
   // '/test' : (context) => Test(),
   '/book': (context) => BookingPage(),
   '/book/payment': (context) => BookingPaymentPage(),

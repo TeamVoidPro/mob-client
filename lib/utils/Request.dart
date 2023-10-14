@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -18,14 +19,11 @@ class MyHttpOverrides extends HttpOverrides {
 
 Future<Response?> sendAuthPOSTRequest(String url,Object? data) async {
   String? token = Provider.of<userProvider>(Navigation.navigatorKey.currentContext!, listen: false).token;
-  print(token);
   if(token != null) {
     String bearerToken = 'Bearer $token';
 
     //read BaseOptions from env
     String baseUrl = dotenv.env['API_URL'] ?? '';
-    print(baseUrl);
-
     BaseOptions options = BaseOptions(
       baseUrl: baseUrl,
       headers: {
@@ -33,14 +31,20 @@ Future<Response?> sendAuthPOSTRequest(String url,Object? data) async {
         'Content-Type': 'application/json',
       },
     );
+
     Dio dio = Dio(options);
     try{
-      return await dio.post(url, data: data);
+      var res =  await dio.post(url,data:data);
+      Map<String, dynamic> response = jsonDecode(res.toString());
+      return res;
     }catch(e){
       if(e is DioException){
         var error = e.response;
+
+        print(e);
         return error;
       }
+      print("DioException");
       return null;
     }
   }else{
