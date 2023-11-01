@@ -1,4 +1,5 @@
 // Define Routes
+import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:mob_client/pages/AddVehicle.dart';
 import 'package:mob_client/pages/BookingPage.dart';
@@ -8,27 +9,58 @@ import 'package:mob_client/pages/LoginPage.dart';
 import 'package:mob_client/pages/ReservationPage.dart';
 import 'package:mob_client/pages/SignUpPage.dart';
 import 'package:mob_client/pages/SuccessPage.dart';
+
+// import 'package:mob_client/pages/Test.dart';
 import 'package:mob_client/pages/ThankYou.dart';
 import 'package:mob_client/pages/WelcomePage.dart';
+import 'package:mob_client/providers/userProvider.dart';
+import 'package:page_transition/page_transition.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../pages/BookingPaymentPage.dart';
-import '../pages/ChatListPage.dart';
+import '../pages/FindPark.dart';
 import '../pages/HomePage.dart';
+import '../providers/userProvider.dart';
+import '../providers/userProvider.dart';
+import '../utils/Navigation.dart';
 
+Widget _splashScreen (BuildContext context){
+  return Container(
+    width: MediaQuery.of(context).size.width, // Adjust the width and height according to your needs
+    height: MediaQuery.of(context).size.height,
+    child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image(
+            image: AssetImage('assets/Images/welcome.png'),
+            width: MediaQuery.of(context).size.width * 0.8,
+          ),
+        ]
+    ),
+  );
+}
 
+final sharedPref = SharedPreferences.getInstance();
 
 final Map<String, WidgetBuilder> routes = {
-  '/login': (context) => const LoginPage(),
-  '/welcome': (context) => const WelcomePage(),
-  '/register': (context) => const SignUpPage(),
-  '/add-vehicle': (context) => const AddVehiclePage(),
-  '/home': (context) => const HomePage(),
-  '/book' : (context) => const BookingPage(),
-  '/book/payment' : (context) => const BookingPaymentPage(),
-  '/success' : (context) => const SuccessPage(),
-  '/error' : (context) => const ErrorPage(errorString: 'Error'),
-  '/thankyou' : (context) => const ThankYou(msgString: 'UCSC Car Park',),
-  '/chat' : (context) => const ChatPage(),
-  '/reservation' : (context) => const ReservationPage(),
-  '/chatList' : (context) => const ChatListPage(),
+  '/login': (context) => LoginPage(),
+  // '/welcome': (context) => const WelcomePage(),
+  '/welcome': (context) => AnimatedSplashScreen(
+      duration: 3000,
+      splash: _splashScreen(context),
+      nextScreen: const WelcomePage(),
+      splashTransition: SplashTransition.fadeTransition,
+      pageTransitionType: PageTransitionType.fade,
+      backgroundColor: Colors.white,
+  ),
+  '/register': (context) => SignUpPage(),
+  '/add-vehicle': (context) => AddVehiclePage(),
+  '/home': (context) => HomePage(),
+  '/error': (context) => ErrorPage(errorString: 'Error'),
+  '/thankyou': (context) => ThankYou(
+        msgString: 'UCSC Car Park',
+      ),
+  '/chat': (context) => ChatPage(),
+  '/reservation': (context) => ReservationPage(),
 };

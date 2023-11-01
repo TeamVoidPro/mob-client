@@ -1,9 +1,28 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:mob_client/utils/Request.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:http/http.dart' as http;
+import 'dart:math';
+
+import 'SuccessPage.dart';
 
 class BookingPaymentPage extends StatefulWidget {
-  const BookingPaymentPage({super.key});
+  final String ArrivingDate;
+  final String DepartureDate;
+  final String Duration;
+  final String VehicleDetails;
+  final String ParkingLocation;
+  final String ParkingPlaceID;
+  final String TotalAmount;
+  final String ZoneID;
+
+  const BookingPaymentPage({Key? key, required this.ArrivingDate, required this.DepartureDate, required this.Duration, required this.VehicleDetails, required this.ParkingLocation, required this.TotalAmount, required this.ParkingPlaceID, required this.ZoneID}) : super(key: key);
 
   @override
   State<BookingPaymentPage> createState() => _BookingPaymentPage();
@@ -11,6 +30,19 @@ class BookingPaymentPage extends StatefulWidget {
 
 class _BookingPaymentPage extends State<BookingPaymentPage> {
   String _paymentMethod = 'Card';
+  Map<String, dynamic>? paymentIntent;
+  final _testCard = {
+    'cardNumber': '4242424242424242',
+    'expMonth': 04,
+    'expYear': 24,
+    'cvc': '242',
+  };
+  //text Controllers
+  TextEditingController _cardNumberController = TextEditingController();
+  TextEditingController _cardHolderNameController = TextEditingController();
+  TextEditingController _expiryDateController = TextEditingController();
+  TextEditingController _cvvController = TextEditingController();
+
 
   @override
   void initState() {
@@ -19,10 +51,137 @@ class _BookingPaymentPage extends State<BookingPaymentPage> {
     _paymentMethod = 'Card';
   }
 
+
+  createPaymentIntent(String amount, String currency) async {
+    try {
+      //Request body
+      Map<String, dynamic> body = {
+        'amount': amount,
+        'currency': currency,
+      };
+
+      //Make post request to Stripe
+      var response = await http.post(
+        Uri.parse('https://api.stripe.com/v1/payment_intents'),
+        headers: {
+          'Authorization': 'Bearer ${dotenv.env['STRIPE_SECRET']}',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: body,
+      );
+
+      return json.decode(response.body);
+    } catch (err) {
+      throw Exception(err.toString());
+    }
+  }
+  displayPaymentSheet() async {
+    try {
+      await Stripe.instance.presentPaymentSheet().then((value) {
+
+        //Clear paymentIntent variable after successful payment
+        print('Payment Successful');
+
+      })
+          .onError((error, stackTrace) {
+            print('Error is:---> $error');
+        throw Exception(error);
+      });
+    }
+    on StripeException catch (e) {
+      print('Error is:---> $e');
+    }
+    catch (e) {
+      print('$e');
+    }
+  }
+
+  Future<void> makePayment() async {
+    try {
+      //STEP 1: Create Payment Intent
+      paymentIntent = await createPaymentIntent("500", "LKR");
+
+      var gpaymentIntent = const PaymentSheetGooglePay(
+        //Sri Lanka
+          merchantCountryCode: "LK",
+          currencyCode: "LKR",
+          testEnv: true
+      );
+      print(paymentIntent!['client_secret']);
+
+      //STEP 2: Initialize Payment Sheet
+      await Stripe.instance
+          .initPaymentSheet(
+
+          paymentSheetParameters: SetupPaymentSheetParameters(
+              paymentIntentClientSecret: paymentIntent![
+              'client_secret'], //Gotten from payment intent
+              style: ThemeMode.dark,
+              merchantDisplayName: 'ParkEase',
+              googlePay: gpaymentIntent,
+          ));
+
+      //STEP 3: Display Payment sheet
+      displayPaymentSheet();
+    } catch (err) {
+      print("Payment Error: ${err.toString()}");
+      throw Exception(err);
+    }
+  }
+
   void handlePaymentMethodChange(String? value) {
     setState(() {
       _paymentMethod = value ?? 'Card';
     });
+  }
+
+  void GetPayment(BuildContext context) {
+    // Show loading indicator
+    showDialog(context: context, builder: (context) => Center(child: CircularProgressIndicator(),), barrierDismissible: false,);
+    // Delay 3 seconds to simulate a load
+    Future.delayed(const Duration(seconds: 3), () async {
+      // Navigator.pushNamed(context, '/success');
+      // valiaate with test card
+      if (_cardNumberController.text == _testCard['cardNumber']) {
+
+
+      //get reservation
+        Object data = {
+          "zoneId" :widget.ZoneID,
+          "reservationStartTime" :DateTime.parse(widget.ArrivingDate).toIso8601String(),
+          "reservationEndTime" : DateTime.parse(widget.DepartureDate).toIso8601String(),
+          "parkingPlaceId" : widget.ParkingPlaceID,
+          "totalPayment" : double.parse(widget.TotalAmount),
+          "paymentMethod" : "Card"
+        };
+        print(data);
+        var res = await sendAuthPOSTRequest("/make-reservation",data);
+        Map<String, dynamic> response = jsonDecode(res.toString());
+        var SlotID = response["slot"];
+
+        // Hide loading indicator
+        Navigator.pop(context);
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) =>
+              SuccessPage(
+                  ParkingLocation:widget.ParkingLocation,
+                  SlotID: SlotID,
+              )),
+        );
+      } else {
+        // Hide loading indicator
+        Navigator.pop(context);
+        // show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Payment Failed'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    });
+
   }
 
   @override
@@ -38,7 +197,7 @@ class _BookingPaymentPage extends State<BookingPaymentPage> {
               IconButton(
                 icon: const Icon(Icons.info),
                 onPressed: () {
-                  Navigator.pushNamed(context, '/welcome');
+                  // Navigator.pop(context);
                 },
               ),
             ],
@@ -48,7 +207,8 @@ class _BookingPaymentPage extends State<BookingPaymentPage> {
                 size: 30,
               ),
               onPressed: () {
-                Navigator.pushNamed(context, '/book');
+                // Navigator.pushNamed(context, '/book');
+                Navigator.pop(context);
               },
             ),
             automaticallyImplyLeading: false,
@@ -80,30 +240,30 @@ class _BookingPaymentPage extends State<BookingPaymentPage> {
                               fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          "Oct 30 10:15 AM",
+                          DateFormat('yyyy-MM-dd – kk:mm').format(DateTime.parse(widget.ArrivingDate)),
                           style: TextStyle(fontSize: 14),
                         ),
-                        TextButton(
-                            onPressed: () {},
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.edit,
-                                  color: const Color.fromARGB(255, 37, 54, 101),
-                                  size: 16,
-                                ),
-                                SizedBox(width: 5),
-                                Text(
-                                  "Change",
-                                  style: TextStyle(
-                                      fontSize: 14,
-                                      color: const Color.fromARGB(
-                                          255, 37, 54, 101)),
-                                ),
 
-                              ],
-                            )
-                        )
+                      ],
+                    ),
+                    SizedBox(height: 10),
+                    Container(
+                      color: const Color.fromARGB(255, 207, 207, 207),
+                      height: 1.0,
+                    ),
+                    SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Departure Date ",
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          DateFormat('yyyy-MM-dd – kk:mm').format(DateTime.parse(widget.DepartureDate)),
+                          style: TextStyle(fontSize: 14),
+                        ),
 
                       ],
                     ),
@@ -123,31 +283,9 @@ class _BookingPaymentPage extends State<BookingPaymentPage> {
                               fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          "10:15 AM - 12.15 PM",
+                          "${widget.Duration} Hours",
                           style: TextStyle(fontSize: 14),
                         ),
-                        TextButton(
-                            onPressed: () {},
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.edit,
-                                  color: const Color.fromARGB(255, 37, 54, 101),
-                                  size: 16,
-                                ),
-                                SizedBox(width: 5),
-                                Text(
-                                  "Change",
-                                  style: TextStyle(
-                                      fontSize: 14,
-                                      color: const Color.fromARGB(
-                                          255, 37, 54, 101)),
-                                ),
-
-                              ],
-                            )
-                        )
-
                       ],
                     ),
                     SizedBox(height: 10),
@@ -165,40 +303,10 @@ class _BookingPaymentPage extends State<BookingPaymentPage> {
                           style: TextStyle(
                               fontSize: 16, fontWeight: FontWeight.bold),
                         ),
-                        Column(
-                          children: [
-                            Text(
-                              "Suzuki Swift",
-                              style: TextStyle(fontSize: 14),
-                            ),
-                            Text(
-                              "CA 1234",
-                              style: TextStyle(fontSize: 14),
-                            ),
-                          ],
-                        ),
-                        TextButton(
-                            onPressed: () {},
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.edit,
-                                  color: const Color.fromARGB(255, 37, 54, 101),
-                                  size: 16,
-                                ),
-                                SizedBox(width: 5),
-                                Text(
-                                  "Change",
-                                  style: TextStyle(
-                                      fontSize: 14,
-                                      color: const Color.fromARGB(
-                                          255, 37, 54, 101)),
-                                ),
-
-                              ],
-                            )
+                        Text(
+                          widget.VehicleDetails,
+                          style: TextStyle(fontSize: 14),
                         )
-
                       ],
                     ),
                     SizedBox(height: 10),
@@ -217,31 +325,9 @@ class _BookingPaymentPage extends State<BookingPaymentPage> {
                               fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          "Level 2, Lot 2",
+                          widget.ParkingLocation,
                           style: TextStyle(fontSize: 14),
                         ),
-                        TextButton(
-                            onPressed: () {},
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.edit,
-                                  color: const Color.fromARGB(255, 37, 54, 101),
-                                  size: 16,
-                                ),
-                                SizedBox(width: 5),
-                                Text(
-                                  "Change",
-                                  style: TextStyle(
-                                      fontSize: 14,
-                                      color: const Color.fromARGB(
-                                          255, 37, 54, 101)),
-                                ),
-
-                              ],
-                            )
-                        )
-
                       ],
                     ),
                     SizedBox(height: 10),
@@ -261,7 +347,7 @@ class _BookingPaymentPage extends State<BookingPaymentPage> {
                         ),
                         SizedBox(width: 20),
                         Text(
-                          "LKR 400.00",
+                          "LKR ${widget.TotalAmount}",
                           style: TextStyle(fontSize: 18,
                               fontWeight: FontWeight.bold),
                         ),
@@ -348,7 +434,10 @@ class _BookingPaymentPage extends State<BookingPaymentPage> {
                               Text(
                                 "Card Number",
                                 style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold),
+                                    fontSize: 16, fontWeight: FontWeight.bold
+                                ),
+
+
                               ),
                             ],
                           ),
@@ -360,6 +449,7 @@ class _BookingPaymentPage extends State<BookingPaymentPage> {
                                 border: OutlineInputBorder(),
                                 hintText: 'Enter Card Number',
                               ),
+                              controller: _cardNumberController,
                             ),
                           ),
                           SizedBox(height: 20),
@@ -381,6 +471,7 @@ class _BookingPaymentPage extends State<BookingPaymentPage> {
                                 border: OutlineInputBorder(),
                                 hintText: 'Enter Card Holder Name',
                               ),
+                              controller: _cardHolderNameController,
                             ),
                           ),
                           SizedBox(height: 20),
@@ -403,8 +494,8 @@ class _BookingPaymentPage extends State<BookingPaymentPage> {
                                       decoration: InputDecoration(
                                         border: OutlineInputBorder(),
                                         hintText: 'MM/YY',
-
                                       ),
+                                      controller: _expiryDateController,
                                     ),
                                   ),
                                 ],
@@ -425,6 +516,7 @@ class _BookingPaymentPage extends State<BookingPaymentPage> {
                                         border: OutlineInputBorder(),
                                         hintText: 'CVV',
                                       ),
+                                      controller: _cvvController,
                                     ),
                                   ),
 
@@ -440,7 +532,8 @@ class _BookingPaymentPage extends State<BookingPaymentPage> {
                       children: [
                         TextButton(
                           onPressed: () {
-                            Navigator.pushNamed(context, '/payment');
+                            // Navigator.pushNamed(context, '/success');
+                            GetPayment(context);
                           },
                           style: ButtonStyle(
                             backgroundColor: MaterialStateProperty.all<Color>(Color.fromARGB(255, 37, 54, 101)),
@@ -460,6 +553,38 @@ class _BookingPaymentPage extends State<BookingPaymentPage> {
                               Icon(
                                 Icons.arrow_forward,
                                 color: Colors.white,
+                              ),
+                            ],
+                          ),
+
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            // Navigator.pushNamed(context, '/success');
+                            makePayment();
+                          },
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all<Color>(Color.fromARGB(255, 192, 34, 124)),
+                            padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.fromLTRB(50, 10, 50, 10)),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.payment,
+                                color: Colors.white,
+                              ),
+                              SizedBox(width: 10),
+                              Text(
+                                "Google Pay ",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: const Color.fromARGB(255, 255, 255, 255),
+                              )
                               ),
                             ],
                           ),
