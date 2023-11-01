@@ -2,6 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mob_client/utils/Request.dart';
+import 'package:provider/provider.dart';
+
+import '../models/Driver.dart';
+import '../providers/userProvider.dart';
 
 class AddVehiclePage extends StatefulWidget {
   const AddVehiclePage({super.key});
@@ -51,6 +55,9 @@ class _AddVehiclePage extends State<AddVehiclePage> {
 
   Future<void> _onSubmit() async {
     if (_formKey.currentState!.validate()) {
+      final userDataProvider = context.read<userProvider>();
+      Driver driver = userDataProvider.user!;
+      print(driver.driverId);
       if (vehicleTypeValue == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -60,7 +67,7 @@ class _AddVehiclePage extends State<AddVehiclePage> {
         );
       } else {
         var response = await sendAuthPOSTRequest('add-vehicle', {
-          "driverId": "Drv_7228_4374",
+          "driverId": driver.driverId,
           "vehicleNumber": _vehicleNumberController.text,
           "vehicleType": vehicleTypeValue,
           "vehicleColor": _vehicleColorController.text,
@@ -182,7 +189,7 @@ class _AddVehiclePage extends State<AddVehiclePage> {
                 Positioned(
                     bottom: 0,
                     left: 0,
-                    height: screenHeight * 0.65,
+                    height: screenHeight * 0.7,
                     child: Container(
                       decoration: const BoxDecoration(
                         color: Colors.white,

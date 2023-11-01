@@ -57,11 +57,6 @@ final Map<String, WidgetBuilder> routes = {
   '/register': (context) => SignUpPage(),
   '/add-vehicle': (context) => AddVehiclePage(),
   '/home': (context) => HomePage(),
-  '/nearby': (context) => FindPark(),
-  // '/test' : (context) => Test(),
-  '/book': (context) => BookingPage(),
-  '/book/payment': (context) => BookingPaymentPage(),
-  '/success': (context) => SuccessPage(),
   '/error': (context) => ErrorPage(errorString: 'Error'),
   '/thankyou': (context) => ThankYou(
         msgString: 'UCSC Car Park',

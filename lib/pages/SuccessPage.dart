@@ -1,22 +1,39 @@
 
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 class SuccessPage extends StatefulWidget {
-  const SuccessPage({super.key});
+  final String? ParkingLocation;
+  final String? SlotID;
+  const SuccessPage({Key? key, required this.ParkingLocation, required this.SlotID}) : super(key: key);
 
   @override
   State<SuccessPage> createState() => _SuccessPage();
 }
 
 class _SuccessPage extends State<SuccessPage> {
+
+  void initState() {
+    super.initState();
+    Dio dio = new Dio();
+    dio.get("https://parkease.azurewebsites.net/api/QrCode/generate-qr-code-image?text=Hello")
+        .then((value) => {
+          //save the image to the local storage
+          ImageGallerySaver.saveImage(value.data)
+
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           onPressed: (){
-            Navigator.pushNamed(context, '/book/payment');
+            // Navigator.pushNamed(context, '/home');
           },
           icon: Icon(Icons.keyboard_arrow_left),
         ),
@@ -46,7 +63,11 @@ class _SuccessPage extends State<SuccessPage> {
               ),
             ),
           ),
-          Image(image: AssetImage("assets/Images/qr.png")),
+          QrImageView(
+            data: widget.SlotID!,
+            version: QrVersions.auto,
+            size: 300.0,
+          ),
           SizedBox(height: 10,),
           Container(
             margin: EdgeInsets.only(left: 50, right: 50),

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:mob_client/providers/dataProvider.dart';
 import 'package:mob_client/Routes/routes.dart';
 import 'package:mob_client/providers/userProvider.dart';
@@ -14,6 +15,8 @@ void main() async{
   WidgetsFlutterBinding.ensureInitialized();
   HttpOverrides.global = MyHttpOverrides();
   await dotenv.load(fileName: ".env");
+  Stripe.publishableKey = dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? 'pk_test_51NdTPVSCxxAQFsWmSxhLggAP88MuYmJDyqJBjzKorVlej39TAM7BWCDdmLJ3XgbBkfs3LSmFzVeSEVGzwx0ZT1t500PNVtMsvB';
+
 
   runApp(
       MultiProvider(
@@ -38,7 +41,7 @@ class MyApp extends StatelessWidget {
       routes: routes,
       // initialRoute: '/reservation',
       initialRoute: '/welcome',
-      title: 'Flutter Demo',
+      title: 'Park Ease',
       theme: myAppTheme,
     );
   }

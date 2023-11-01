@@ -10,7 +10,6 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:mob_client/pages/FindPark.dart';
-import 'package:mob_client/pages/Services.dart';
 import 'package:mob_client/pages/Settings.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:mob_client/components/AppBar.dart';
@@ -34,13 +33,13 @@ class _MyHomePageState extends State<HomePage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   Completer<GoogleMapController> mapController = Completer();
   Set<Marker> _markers = Set();
-  double _centerLatitude = 6.899138;
-  double _centerLongitude = 79.860729;
+  late double _centerLatitude;
+  late double _centerLongitude;
   List<Map<String, dynamic>> _carParks = [];
   List<Prediction> _predictions = [];
   final TextEditingController searchController = TextEditingController();
   double userRadius = 5.0;
-  double bottomSheetHeight = 0.65;
+  double bottomSheetHeight = 0.8;
 
   // input text field for diameter
   TextEditingController diameterController = TextEditingController(text: "5");
@@ -76,20 +75,40 @@ class _MyHomePageState extends State<HomePage> {
     // TODO: implement initState
     super.initState();
     getUserCurrentLocation();
-    getParks();
+
   }
 
-  void FindParkByTime() {
+  void FindParkByTime() async{
+    Navigator.pop(context);
+    showDialog(
+        context: context,
+        builder: (context){
+          return Container(
+            height: MediaQuery.of(context).size.height,
+            width: MediaQuery.of(context).size.width,
+            color: Colors.black.withOpacity(0.5),
+            child: Center(
+              child: CircularProgressIndicator(
+                color: Colors.white,
+              ),
+            ),
+          );
+        }
+    );
+    DateTime arrivalTime = DateTime.parse(arrivalTimeController.text);
+    DateTime departureTime = DateTime.parse(departureTimeController.text);
+
     Object? data = {
-      'DriverLatitude': _centerLatitude,
-      'DriverLongitude': _centerLongitude,
-      'ArrivalTime': arrivalTimeController.text,
-      'DepartureTime': departureTimeController.text,
-      'Radius': 800,
+      'DriverLatitude': _centerLatitude.toString(),
+      'DriverLongitude': _centerLongitude.toString(),
+      'ArrivalTime': arrivalTime.toIso8601String(),
+      'DepartureTime': departureTime.toIso8601String(),
+      'Radius': 8,
     };
     //validate ArrivalTime and DepartureTime
     if (arrivalTimeController.text.isEmpty ||
         departureTimeController.text.isEmpty) {
+      Navigator.pop(context);
       // show banner
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -126,25 +145,26 @@ class _MyHomePageState extends State<HomePage> {
           ),
         ),
       );
+      Navigator.pop(context);
       return;
     }
 
-    sendAuthPOSTRequest("/getPark", data).then((value) => {
-          print(value),
-          // Navigator.pushNamed(context, '/book'),
-        });
-    // Navigator.push(context, MaterialPageRoute(builder: (context) => FindPark()));
+    var parks = await sendAuthPOSTRequest("/get-nearest-park", data);
+
+    Navigator.push(context, MaterialPageRoute(builder: (context) => FindPark(parks: parks,)));
   }
 
   Future<void> getParks() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('userToken');
+    DateTime arrivalTime = DateTime.now();
+    DateTime defaultDepartureTime = DateTime.now();
     Object? data = {
-      'DriverLatitude': _centerLatitude,
-      'DriverLongitude': _centerLongitude,
-      'ArrivalTime': "",
-      'DepartureTime': "",
-      'Radius': 800,
+      'DriverLatitude': _centerLatitude.toString(),
+      'DriverLongitude': _centerLongitude.toString(),
+      'ArrivalTime': arrivalTime.toIso8601String(),
+      'DepartureTime': defaultDepartureTime.toIso8601String(),
+      'Radius': 5,
     };
     BitmapDescriptor carIcon = await BitmapDescriptor.fromAssetImage(
       ImageConfiguration(
@@ -153,21 +173,21 @@ class _MyHomePageState extends State<HomePage> {
       ), // Set the size you want
       'assets/Icons/park.png', // Path to your car icon image in the assets folder
     );
-    var res = await sendAuthPOSTRequest("getPark", data);
-    print(res?.statusMessage);
+    var res = await sendAuthPOSTRequest("/get-nearest-park", data);
     Map<String, dynamic> response = jsonDecode(res.toString());
     setState(() {
-      var carParks = response['carParks'];
-
+      print(response);
+      var carParks = response['parkingPlaces'];
       Set<Marker> _markersToShow = Set();
-      if (carParks) {
+      if (carParks.length > 0) {
         for (int i = 0; i < carParks.length; i++) {
           _carParks.add(carParks[i]);
 
           _markersToShow.add(
             Marker(
               markerId: MarkerId(carParks[i]['name']),
-              position: LatLng(carParks[i]['lat'], carParks[i]['lng']),
+              position: LatLng(carParks[i]['latitude'],
+                  carParks[i]['longitude']),
               infoWindow: InfoWindow(
                 title: carParks[i]['name'],
                 snippet: carParks[i]['address'],
@@ -204,6 +224,7 @@ class _MyHomePageState extends State<HomePage> {
 
     final GoogleMapController controller = await mapController.future;
     controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+    getParks();
     // draw circle around current location
   }
 
@@ -245,7 +266,7 @@ class _MyHomePageState extends State<HomePage> {
         placeDetails['geometry']['location']['lat'],
         placeDetails['geometry']['location']['lng'],
       ),
-      zoom: 16,
+      zoom: 18,
     );
     final GoogleMapController controller = await mapController.future;
     controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
@@ -381,7 +402,8 @@ class _MyHomePageState extends State<HomePage> {
                                 Navigator.pop(context);
                               },
                               style: ButtonStyle(
-                                backgroundColor: MaterialStateProperty.all<Color>(
+                                backgroundColor:
+                                    MaterialStateProperty.all<Color>(
                                   Color.fromARGB(255, 37, 54, 101),
                                 ),
                               ),
@@ -426,7 +448,8 @@ class _MyHomePageState extends State<HomePage> {
             child: StatefulBuilder(
               builder: (BuildContext context, StateSetter setState) {
                 return Container(
-                  height: MediaQuery.of(context).size.height * bottomSheetHeight,
+                  height:
+                      MediaQuery.of(context).size.height * bottomSheetHeight,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.only(
@@ -488,7 +511,7 @@ class _MyHomePageState extends State<HomePage> {
                                 ),
                                 initialDate: DateTime.now(),
                                 onChanged: (value) {
-                                  print(value);
+                                  arrivalTimeController.text = value.toString();
                                 },
                                 validator: (value) {
                                   if (value == null) {
@@ -514,8 +537,8 @@ class _MyHomePageState extends State<HomePage> {
                               margin: EdgeInsets.only(top: 10),
                               child: FormBuilderDateTimePicker(
                                 name: 'Departure Date & Time',
+                                format: DateFormat("y MMM d HH:mm"),
                                 inputType: InputType.both,
-
                                 initialDate: DateTime.now(),
                                 validator: (value) {
                                   if (value == null) {
@@ -537,7 +560,8 @@ class _MyHomePageState extends State<HomePage> {
                                   suffixIcon: Icon(Icons.calendar_today),
                                 ),
                                 onChanged: (value) {
-                                  print(value);
+                                  departureTimeController.text =
+                                      value.toString();
                                 },
                               )),
                           // Select Vehicle
@@ -554,8 +578,8 @@ class _MyHomePageState extends State<HomePage> {
                           Container(
                             margin: EdgeInsets.only(top: 10),
                             child:
-                            //Select Vehicle
-                            DropdownButtonFormField(
+                                //Select Vehicle
+                                DropdownButtonFormField(
                               decoration: InputDecoration(
                                 hintText: "Select Vehicle",
                                 hintStyle: TextStyle(
@@ -588,15 +612,49 @@ class _MyHomePageState extends State<HomePage> {
                             height: 10,
                           ),
                           Container(
+                            margin: EdgeInsets.only(top: 10),
+                            child: Text(
+                              "Radius (Km)",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Container(
+                            margin: EdgeInsets.only(top: 10),
+                            child: TextFormField(
+                              controller: diameterController,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                hintText: "Radius (Km)",
+                                hintStyle: TextStyle(
+                                  color: Color.fromARGB(255, 120, 119, 115),
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Container(
                             margin: const EdgeInsets.only(top: 10),
                             child: ElevatedButton(
                               onPressed: () {
-                                if (_formKey.currentState!.validate()){
+                                if (_formKey.currentState!.validate()) {
                                   FindParkByTime();
+                                }else{
+                                  setState(() {
+                                    bottomSheetHeight = 0.9;
+                                  });
                                 }
                               },
                               style: ButtonStyle(
-                                backgroundColor: MaterialStateProperty.all<Color>(
+                                backgroundColor:
+                                    MaterialStateProperty.all<Color>(
                                   Color.fromARGB(255, 37, 54, 101),
                                 ),
                               ),
@@ -610,6 +668,7 @@ class _MyHomePageState extends State<HomePage> {
                               ),
                             ),
                           ),
+
                         ],
                       ),
                     ),
@@ -741,7 +800,7 @@ class _MyHomePageState extends State<HomePage> {
                                         ),
                                       ),
                                     ],
-                                  ))
+                                  )),
                             ],
                           ),
                         ),

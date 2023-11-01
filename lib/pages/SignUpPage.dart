@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:mob_client/components/FormComponent/InputText.dart';
 import 'package:mob_client/utils/Navigation.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/Driver.dart';
 import '../providers/userProvider.dart';
@@ -69,28 +70,31 @@ class _SignUpPage extends State<SignUpPage> {
   void _submit() async {
     if (_formKey.currentState!.validate()) {
       try {
+        Object? data = {
+    "email": _emailController.text,
+    "password": _passwordController.text,
+    "confirmPassword": _confirmPasswordController.text,
+    "firstName": _firstNameController.text,
+    "lastName": _lastNameController.text,
+    "contactNumber": _phoneController.text,
+    };
+        print(data);
         final response = await _dio.post(
-          'https://10.0.2.2:7211/api/Driver/register',
-          data: {
-            "email": _emailController.text,
-            "password": _passwordController.text,
-            "confirmPassword": _confirmPasswordController.text,
-            "firstName": _firstNameController.text,
-            "lastName": _lastNameController.text,
-            "contactNumber": _phoneController.text,
-          },
+          'https://parkease.azurewebsites.net/api/Driver/register',
+          data: data
         );
+
+
 
         // If server returns an OK response navigate to Login Page else show error
         if (response.statusCode == 200) {
           // final userDataProvider = Provider.of<userProvider>(context, listen: false);
           final userDataProvider = context.read<userProvider>();
+          SharedPreferences prefs = await SharedPreferences.getInstance();
           Driver driver= Driver.fromJson(response.data['driver']);
-
           String token = response.data['token'];
           userDataProvider.setUser(driver);
           userDataProvider.setToken(token);
-
           Navigation.push('/add-vehicle');
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
